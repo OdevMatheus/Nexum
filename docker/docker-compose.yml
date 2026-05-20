@@ -1,0 +1,48 @@
+services:
+  # Banco
+  postgres:
+    image: postgres:16-alpine
+    container_name: nexum-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nexum_user
+      POSTGRES_PASSWORD: nexum_password
+      POSTGRES_DB: nexum_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexum-pg-data:/var/lib/postgresql/data
+
+  # Cache
+  redis:
+    image: redis:7-alpine
+    container_name: nexum-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - nexum-redis-data:/data
+
+  #  Eventos do kafka
+  kafka:
+    image: confluentinc/confluent-local:7.6.0
+    container_name: nexum-kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+    volumes:
+      - nexum-kafka-data:/var/lib/kafka/data
+
+volumes:
+  nexum-pg-data:
+  nexum-redis-data:
+  nexum-kafka-data:

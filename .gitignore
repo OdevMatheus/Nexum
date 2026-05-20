@@ -1,0 +1,39 @@
+# Váriaveis de Ambiente
+.env
+.env.*
+!.env.example
+
+# IntelliJ / WebStorm
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Arquivos temporários de editores (Vim/Emacs)
+*~
+*.swp
+*.swo
+
+# SO
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.cab
+*.msi
+*.msm
+*.msp
+$RECYCLE.BIN/
+
+
+#Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+#MD para apoiar no desenvolvimento
+Regras.md
+Principal1.md
+Principal2.md
