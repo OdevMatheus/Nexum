@@ -39,6 +39,8 @@ jobs:
 
       - name: Build and Test (Backend)
         working-directory: ./backend
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           chmod +x mvnw
           ./mvnw clean verify
