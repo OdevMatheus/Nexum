@@ -61,6 +61,7 @@ export const authService = {
     register: async (data: RegisterRequest): Promise<MessageResponse> => {
         const response = await api.post<MessageResponse>('/v1/auth/register', data)
         return response.data
+
     },
 
     login: async (data: LoginRequest): Promise<AuthResponse> => {
@@ -79,6 +80,11 @@ export const authService = {
 
     refresh: async (data: RefreshTokenRequest): Promise<AuthResponse> => {
         const response = await api.post<AuthResponse>('/v1/auth/refresh', data)
+        return response.data
+    },
+
+    verifyEmail: async (token: string): Promise<MessageResponse> => {
+        const response = await api.get<MessageResponse>(`/v1/auth/verify-email?token=${token}`)
         return response.data
     },
 }
