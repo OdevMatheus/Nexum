@@ -23,7 +23,7 @@ public class EmailService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     public void sendVerificationEmail(String toEmail, String name, String token) {
-        String verificationLink = baseUrl + "/v1/auth/verify-email?token=" + token;
+        String verificationLink = baseUrl + "/verify-email?token=" + token;
 
         String html = buildVerificationEmailHtml(name, verificationLink);
 
