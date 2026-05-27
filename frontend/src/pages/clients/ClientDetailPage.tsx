@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useClient, useUpdateClient, useDeactivateClient } from '../../hooks/useClients'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { UpdateClientRequest } from '../../types/client'
 import { getErrorMessage } from '../../services/authService'
 
@@ -11,19 +11,20 @@ export default function ClientDetailPage() {
     const { mutate: update, isPending: updating, error: updateError } = useUpdateClient(id!)
     const { mutate: deactivate } = useDeactivateClient()
 
-    const [form, setForm] = useState<UpdateClientRequest>({ name: '', email: '', phone: '', document: '' })
+    const clientId = client?.id ?? null
+    const [draft, setDraft] = useState<{ clientId: string | null; data: UpdateClientRequest } | null>(null)
     const [editing, setEditing] = useState(false)
 
-    useEffect(() => {
-        if (client) {
-            setForm({
-                name: client.name,
-                email: client.email,
-                phone: client.phone ?? '',
-                document: client.document ?? '',
-            })
+    const form: UpdateClientRequest = draft?.clientId === clientId && draft
+        ? draft.data
+        : {
+            name: client?.name ?? '',
+            email: client?.email ?? '',
+            phone: client?.phone ?? '',
+            document: client?.document ?? '',
         }
-    }, [client])
+
+    const updateForm = (next: UpdateClientRequest) => setDraft({ clientId, data: next })
 
     if (isLoading) return (
         <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -52,7 +53,10 @@ export default function ClientDetailPage() {
                         <h1 className="text-xl font-semibold text-white">{client.name}</h1>
                         <div className="flex gap-2">
                             <button
-                                onClick={() => setEditing(!editing)}
+                                onClick={() => {
+                                    if (editing) setDraft(null)
+                                    setEditing(!editing)
+                                }}
                                 className="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-1.5 rounded-lg transition"
                             >
                                 {editing ? 'Cancelar' : 'Editar'}
@@ -77,7 +81,7 @@ export default function ClientDetailPage() {
                                 <input
                                     type="text"
                                     value={form.name}
-                                    onChange={e => setForm({ ...form, name: e.target.value })}
+                                    onChange={e => updateForm({ ...form, name: e.target.value })}
                                     className="w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -86,7 +90,7 @@ export default function ClientDetailPage() {
                                 <input
                                     type="email"
                                     value={form.email}
-                                    onChange={e => setForm({ ...form, email: e.target.value })}
+                                    onChange={e => updateForm({ ...form, email: e.target.value })}
                                     className="w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -95,7 +99,7 @@ export default function ClientDetailPage() {
                                 <input
                                     type="text"
                                     value={form.phone ?? ''}
-                                    onChange={e => setForm({ ...form, phone: e.target.value })}
+                                    onChange={e => updateForm({ ...form, phone: e.target.value })}
                                     className="w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                                 />
                             </div>
@@ -104,13 +108,18 @@ export default function ClientDetailPage() {
                                 <input
                                     type="text"
                                     value={form.document ?? ''}
-                                    onChange={e => setForm({ ...form, document: e.target.value })}
+                                    onChange={e => updateForm({ ...form, document: e.target.value })}
                                     className="w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                                 />
                             </div>
                             <button
                                 type="button"
-                                onClick={() => update(form, { onSuccess: () => setEditing(false) })}
+                                onClick={() => update(form, {
+                                    onSuccess: () => {
+                                        setDraft(null)
+                                        setEditing(false)
+                                    },
+                                })}
                                 disabled={updating}
                                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
                             >
