@@ -3,6 +3,8 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
+import ClientsPage from "./pages/clients/ClientsPage.tsx";
+import ClientDetailPage from "./pages/clients/ClientDetailPage.tsx";
 
 const isAuthenticated = () => !!sessionStorage.getItem('accessToken')
 
@@ -28,6 +30,8 @@ function App() {
                 }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/clients" element={<PrivateRoute><ClientsPage /></PrivateRoute>} />
+            <Route path="/clients/:id" element={<PrivateRoute><ClientDetailPage /></PrivateRoute>} />
         </Routes>
     )
 }
