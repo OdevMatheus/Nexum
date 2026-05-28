@@ -12,18 +12,23 @@ import java.util.UUID;
 
 public interface ClientRepository extends JpaRepository<Client, UUID> {
 
-    Optional<Client> findByIdAndActiveTrue(UUID id);
+    Optional<Client> findByIdAndActiveTrueAndOwnerId(UUID id, UUID ownerId);
 
-    boolean existsByEmailAndActiveTrue(String email);
+    boolean existsByEmailAndActiveTrueAndOwnerId(String email, UUID ownerId);
 
-    boolean existsByEmailAndActiveTrueAndIdNot(String email, UUID id);
+    boolean existsByEmailAndActiveTrueAndIdNotAndOwnerId(String email, UUID id, UUID ownerId);
 
     @Query("""
-    SELECT c FROM Client c
-    WHERE c.active = true
-    AND (:search IS NULL
-         OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
-         OR LOWER(c.email) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))
-""")
-    Page<Client> findAllActiveWithSearch(@Param("search") String search, Pageable pageable);
+        SELECT c FROM Client c
+        WHERE c.active = true
+        AND c.owner.id = :ownerId
+        AND (:search IS NULL
+             OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+             OR LOWER(c.email) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))
+    """)
+    Page<Client> findAllActiveWithSearch(
+            @Param("search") String search,
+            @Param("ownerId") UUID ownerId,
+            Pageable pageable
+    );
 }

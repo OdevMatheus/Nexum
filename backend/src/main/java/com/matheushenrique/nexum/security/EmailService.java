@@ -11,6 +11,10 @@ import java.net.http.HttpResponse;
 @Service
 public class EmailService {
 
+    //Variavel para o desenvolvimento.
+    @Value("${resend.override-to-email:}")
+    private String overrideToEmail;
+
     @Value("${resend.api-key}")
     private String apiKey;
 
@@ -25,6 +29,8 @@ public class EmailService {
     public void sendVerificationEmail(String toEmail, String name, String token) {
         String verificationLink = baseUrl + "/verify-email?token=" + token;
 
+        String recipient = overrideToEmail.isBlank() ? toEmail : overrideToEmail;
+
         String html = buildVerificationEmailHtml(name, verificationLink);
 
         String body = """
@@ -34,7 +40,7 @@ public class EmailService {
                 "subject": "Confirme seu e-mail — Nexum",
                 "html": "%s"
             }
-            """.formatted(fromEmail, toEmail, escapeJson(html));
+            """.formatted(fromEmail, recipient, escapeJson(html));
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.resend.com/emails"))

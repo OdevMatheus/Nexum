@@ -42,4 +42,8 @@ public class Client {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 }
