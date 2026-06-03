@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class SubscriptionEventProducer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void publishStatusChanged(SubscriptionStatusChangedEvent event) {
         try {

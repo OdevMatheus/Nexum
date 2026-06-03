@@ -1,5 +1,6 @@
 package com.matheushenrique.nexum.config;
 
+import com.matheushenrique.nexum.dtos.response.MessageResponse;
 import com.matheushenrique.nexum.security.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,18 @@ public class GlobalExceptionHandler {
             String message,
             Instant timestamp
     ) {}
+
+    @ExceptionHandler(SubscriptionNotFoundException.class)
+    public ResponseEntity<MessageResponse> handleSubscriptionNotFound(SubscriptionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new MessageResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<MessageResponse> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new MessageResponse(ex.getMessage()));
+    }
 
     @ExceptionHandler(PlanNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlePlanNotFound(PlanNotFoundException ex) {

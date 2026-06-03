@@ -40,19 +40,15 @@ public class SubscriptionServiceImpl {
     private final PlanRepository planRepository;
     private final SubscriptionEventProducer eventProducer;
 
-    // -------------------------------------------------------------------------
-    // Create
-    // -------------------------------------------------------------------------
+    // create
 
     @Transactional
     public SubscriptionResponse create(CreateSubscriptionRequest request) {
         var owner = authenticatedUser();
 
-        var client = clientRepository.findByIdAndOwnerId(request.clientId(), owner.getId())
-                .orElseThrow(ClientNotFoundException::new);
+        var client = clientRepository.findByIdAndActiveTrueAndOwnerId(request.clientId(), owner.getId()).orElseThrow(() -> new ClientNotFoundException("Client not found"));
 
-        var plan = planRepository.findByIdAndOwnerId(request.planId(), owner.getId())
-                .orElseThrow(PlanNotFoundException::new);
+        var plan = planRepository.findByIdAndOwnerId(request.planId(), owner.getId()).orElseThrow(() -> new PlanNotFoundException("Plan not found"));
 
         if (!plan.isActive()) {
             throw new IllegalStateException("Plan is not active");
@@ -89,9 +85,7 @@ public class SubscriptionServiceImpl {
         return SubscriptionResponse.from(subscription);
     }
 
-    // -------------------------------------------------------------------------
-    // Read
-    // -------------------------------------------------------------------------
+    // read
 
     public PageResponse<SubscriptionResponse> findAll(
             int page, int size,
@@ -117,9 +111,7 @@ public class SubscriptionServiceImpl {
         return SubscriptionResponse.from(subscription);
     }
 
-    // -------------------------------------------------------------------------
-    // Cancel
-    // -------------------------------------------------------------------------
+    // cancel
 
     @Transactional
     public SubscriptionResponse cancel(UUID id) {
@@ -142,9 +134,7 @@ public class SubscriptionServiceImpl {
         return SubscriptionResponse.from(subscription);
     }
 
-    // -------------------------------------------------------------------------
-    // Reactivate
-    // -------------------------------------------------------------------------
+    // reactivate
 
     @Transactional
     public SubscriptionResponse reactivate(UUID id) {
@@ -172,9 +162,7 @@ public class SubscriptionServiceImpl {
         return SubscriptionResponse.from(subscription);
     }
 
-    // -------------------------------------------------------------------------
-    // Cycles
-    // -------------------------------------------------------------------------
+    // Ciclos
 
     public List<SubscriptionCycleResponse> findCycles(UUID subscriptionId) {
         var owner = authenticatedUser();
@@ -189,9 +177,7 @@ public class SubscriptionServiceImpl {
                 .toList();
     }
 
-    // -------------------------------------------------------------------------
     // Helpers
-    // -------------------------------------------------------------------------
 
     private LocalDate calculateNextDueDate(LocalDate from, Plan plan) {
         return switch (plan.getRecurrence()) {
