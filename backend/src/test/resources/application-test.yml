@@ -1,0 +1,20 @@
+spring:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  data:
+    redis:
+      host: localhost
+      port: 6370
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+
+app:
+  cors:
+    allowed-origins: http://localhost:5173
+
+resend:
+  override-to-email: test@nexum.dev
