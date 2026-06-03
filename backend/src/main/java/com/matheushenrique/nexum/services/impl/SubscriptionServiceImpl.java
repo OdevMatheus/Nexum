@@ -1,0 +1,236 @@
+package com.matheushenrique.nexum.services.impl;
+
+import com.matheushenrique.nexum.dtos.request.CreateSubscriptionRequest;
+import com.matheushenrique.nexum.dtos.response.PageResponse;
+import com.matheushenrique.nexum.dtos.response.SubscriptionCycleResponse;
+import com.matheushenrique.nexum.dtos.response.SubscriptionResponse;
+import com.matheushenrique.nexum.entities.Plan;
+import com.matheushenrique.nexum.entities.Subscription;
+import com.matheushenrique.nexum.entities.SubscriptionCycle;
+import com.matheushenrique.nexum.entities.User;
+import com.matheushenrique.nexum.messaging.SubscriptionEventProducer;
+import com.matheushenrique.nexum.messaging.events.SubscriptionStatusChangedEvent;
+import com.matheushenrique.nexum.repositories.ClientRepository;
+import com.matheushenrique.nexum.repositories.PlanRepository;
+import com.matheushenrique.nexum.repositories.SubscriptionCycleRepository;
+import com.matheushenrique.nexum.repositories.SubscriptionRepository;
+import com.matheushenrique.nexum.security.exceptions.ClientNotFoundException;
+import com.matheushenrique.nexum.security.exceptions.PlanNotFoundException;
+import com.matheushenrique.nexum.security.exceptions.SubscriptionNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class SubscriptionServiceImpl {
+
+    private final SubscriptionRepository subscriptionRepository;
+    private final SubscriptionCycleRepository cycleRepository;
+    private final ClientRepository clientRepository;
+    private final PlanRepository planRepository;
+    private final SubscriptionEventProducer eventProducer;
+
+    // -------------------------------------------------------------------------
+    // Create
+    // -------------------------------------------------------------------------
+
+    @Transactional
+    public SubscriptionResponse create(CreateSubscriptionRequest request) {
+        var owner = authenticatedUser();
+
+        var client = clientRepository.findByIdAndOwnerId(request.clientId(), owner.getId())
+                .orElseThrow(ClientNotFoundException::new);
+
+        var plan = planRepository.findByIdAndOwnerId(request.planId(), owner.getId())
+                .orElseThrow(PlanNotFoundException::new);
+
+        if (!plan.isActive()) {
+            throw new IllegalStateException("Plan is not active");
+        }
+
+        boolean alreadyExists = subscriptionRepository.existsByClientIdAndPlanIdAndStatusNotIn(
+                client.getId(),
+                plan.getId(),
+                List.of(Subscription.Status.CANCELLED)
+        );
+
+        if (alreadyExists) {
+            throw new IllegalStateException("Client already has an active subscription for this plan");
+        }
+
+        LocalDate startDate = request.startDate();
+        LocalDate nextDueDate = calculateNextDueDate(startDate, plan);
+
+        var subscription = Subscription.builder()
+                .owner(owner)
+                .client(client)
+                .plan(plan)
+                .status(Subscription.Status.ACTIVE)
+                .startDate(startDate)
+                .nextDueDate(nextDueDate)
+                .build();
+
+        subscriptionRepository.save(subscription);
+
+        createCycle(subscription, nextDueDate, plan.getAmountCents());
+
+        publishEvent(null, Subscription.Status.ACTIVE, subscription);
+
+        return SubscriptionResponse.from(subscription);
+    }
+
+    // -------------------------------------------------------------------------
+    // Read
+    // -------------------------------------------------------------------------
+
+    public PageResponse<SubscriptionResponse> findAll(
+            int page, int size,
+            Subscription.Status status,
+            UUID clientId,
+            UUID planId
+    ) {
+        var owner = authenticatedUser();
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<Subscription> result = subscriptionRepository.findAllByOwner(
+                owner.getId(), status, clientId, planId, pageable
+        );
+
+        return PageResponse.from(result.map(SubscriptionResponse::from));
+    }
+
+    public SubscriptionResponse findById(UUID id) {
+        var owner = authenticatedUser();
+        var subscription = subscriptionRepository.findByIdAndOwnerId(id, owner.getId())
+                .orElseThrow(SubscriptionNotFoundException::new);
+
+        return SubscriptionResponse.from(subscription);
+    }
+
+    // -------------------------------------------------------------------------
+    // Cancel
+    // -------------------------------------------------------------------------
+
+    @Transactional
+    public SubscriptionResponse cancel(UUID id) {
+        var owner = authenticatedUser();
+        var subscription = subscriptionRepository.findByIdAndOwnerId(id, owner.getId())
+                .orElseThrow(SubscriptionNotFoundException::new);
+
+        if (subscription.getStatus() == Subscription.Status.CANCELLED) {
+            throw new IllegalStateException("Subscription is already cancelled");
+        }
+
+        var previous = subscription.getStatus();
+
+        subscription.setStatus(Subscription.Status.CANCELLED);
+        subscription.setCancelledAt(Instant.now());
+        subscriptionRepository.save(subscription);
+
+        publishEvent(previous, Subscription.Status.CANCELLED, subscription);
+
+        return SubscriptionResponse.from(subscription);
+    }
+
+    // -------------------------------------------------------------------------
+    // Reactivate
+    // -------------------------------------------------------------------------
+
+    @Transactional
+    public SubscriptionResponse reactivate(UUID id) {
+        var owner = authenticatedUser();
+        var subscription = subscriptionRepository.findByIdAndOwnerId(id, owner.getId())
+                .orElseThrow(SubscriptionNotFoundException::new);
+
+        if (subscription.getStatus() != Subscription.Status.CANCELLED) {
+            throw new IllegalStateException("Subscription is not cancelled");
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate nextDueDate = calculateNextDueDate(today, subscription.getPlan());
+
+        subscription.setStatus(Subscription.Status.REACTIVATED);
+        subscription.setStartDate(today);
+        subscription.setNextDueDate(nextDueDate);
+        subscription.setCancelledAt(null);
+        subscriptionRepository.save(subscription);
+
+        createCycle(subscription, nextDueDate, subscription.getPlan().getAmountCents());
+
+        publishEvent(Subscription.Status.CANCELLED, Subscription.Status.REACTIVATED, subscription);
+
+        return SubscriptionResponse.from(subscription);
+    }
+
+    // -------------------------------------------------------------------------
+    // Cycles
+    // -------------------------------------------------------------------------
+
+    public List<SubscriptionCycleResponse> findCycles(UUID subscriptionId) {
+        var owner = authenticatedUser();
+
+        subscriptionRepository.findByIdAndOwnerId(subscriptionId, owner.getId())
+                .orElseThrow(SubscriptionNotFoundException::new);
+
+        return cycleRepository
+                .findBySubscriptionIdOrderByDueDateDesc(subscriptionId)
+                .stream()
+                .map(SubscriptionCycleResponse::from)
+                .toList();
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private LocalDate calculateNextDueDate(LocalDate from, Plan plan) {
+        return switch (plan.getRecurrence()) {
+            case MONTHLY    -> from.plusMonths(1);
+            case QUARTERLY  -> from.plusMonths(3);
+            case SEMIANNUAL -> from.plusMonths(6);
+            case ANNUAL     -> from.plusYears(1);
+            case CUSTOM     -> from.plusDays(plan.getCustomDays());
+        };
+    }
+
+    private void createCycle(Subscription subscription, LocalDate dueDate, int amountCents) {
+        var cycle = SubscriptionCycle.builder()
+                .subscription(subscription)
+                .dueDate(dueDate)
+                .amountCents(amountCents)
+                .status(SubscriptionCycle.CycleStatus.PENDING)
+                .build();
+
+        cycleRepository.save(cycle);
+    }
+
+    private void publishEvent(Subscription.Status previous, Subscription.Status next, Subscription s) {
+        var event = new SubscriptionStatusChangedEvent(
+                s.getId(),
+                s.getOwner().getId(),
+                s.getClient().getId(),
+                s.getClient().getName(),
+                s.getClient().getEmail(),
+                s.getPlan().getName(),
+                previous != null ? previous.name() : null,
+                next.name(),
+                Instant.now()
+        );
+
+        eventProducer.publishStatusChanged(event);
+    }
+
+    private User authenticatedUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+}
