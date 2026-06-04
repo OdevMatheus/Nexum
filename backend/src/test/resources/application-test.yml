@@ -10,7 +10,7 @@ spring:
       host: localhost
       port: 6370
   kafka:
-    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    bootstrap-servers: ${spring.embedded.kafka.brokers:localhost:9092}
 
 app:
   cors:
@@ -18,3 +18,8 @@ app:
 
 resend:
   override-to-email: test@nexum.dev
+
+jwt:
+  secret: test-secret-key-that-is-long-enough-for-hmac-sha256-algorithm-minimum
+  expiration: 86400000
+  refresh-expiration: 604800000

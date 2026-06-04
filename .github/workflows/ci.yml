@@ -22,21 +22,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Sobe a infra antes de rodar o back
-      - name: Start Infrastructure (Docker)
-        working-directory: ./docker
-        run: docker compose up -d
-
-      # Healthcheck
-      - name: Wait for services
-        run: |
-          echo "Waiting for PostgreSQL..."
-          until docker exec $(docker ps -qf "name=nexum-db") pg_isready -U nexum_user -d nexum_db; do
-            echo "PostgreSQL not ready yet, retrying..."
-            sleep 2
-          done
-          echo "PostgreSQL is ready!"
-
       - name: Build and Test (Backend)
         working-directory: ./backend
         env:
@@ -45,12 +30,6 @@ jobs:
         run: |
           chmod +x mvnw
           ./mvnw clean verify
-
-      # limpeza
-      - name: Stop Infrastructure
-        if: always()
-        working-directory: ./docker
-        run: docker compose down
 
   frontend-build:
     name: Frontend CI (React + TS)
