@@ -29,12 +29,12 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           chmod +x mvnw
-          # Adicionamos -DskipTests aqui para pular os testes de integração instáveis
           ./mvnw clean install -DskipTests
 
   frontend-build:
     name: Frontend CI (React + TS)
     runs-on: ubuntu-latest
+    needs: backend-build
 
     steps:
       - name: Checkout Code
@@ -50,6 +50,11 @@ jobs:
       - name: Install Dependencies
         working-directory: ./frontend
         run: npm ci
+
+      - name: Generate and Check API Types
+        working-directory: ./frontend
+        run: |
+          npm run generate-types
 
       - name: Type Check & Lint
         working-directory: ./frontend
