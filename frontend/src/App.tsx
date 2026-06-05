@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import VerifyEmailPage from './pages/VerifyEmailPage'
+import LoginPage from './pages/auth/LoginPage.tsx'
+import RegisterPage from './pages/auth/RegisterPage.tsx'
+import VerifyEmailPage from './pages/auth/VerifyEmailPage.tsx'
 import ClientsPage from "./pages/clients/ClientsPage.tsx";
 import ClientDetailPage from "./pages/clients/ClientDetailPage.tsx";
 import PlansPage from "./pages/plans/PlansPage.tsx";

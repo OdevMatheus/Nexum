@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { authService } from '../services/authService'
+import { authService } from '../../services/authService.ts'
 import type { AxiosError } from 'axios'
-import type { ErrorResponse } from '../types/auth'
+import type { ErrorResponse } from '../../types/auth.ts'
 
 export default function VerifyEmailPage() {
     const [searchParams] = useSearchParams()
