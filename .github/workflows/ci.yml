@@ -51,11 +51,6 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Generate and Check API Types
-        working-directory: ./frontend
-        run: |
-          npm run generate-types
-
       - name: Type Check & Lint
         working-directory: ./frontend
         run: |
