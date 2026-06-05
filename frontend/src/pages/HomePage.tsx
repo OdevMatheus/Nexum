@@ -1,10 +1,16 @@
+import { Header } from '../components/landing/Header';
+import { HeroSection } from '../components/landing/HeroSection';
+import { FeaturesSection } from '../components/landing/FeaturesSection'; // <-- Importe aqui
+
 export default function HomePage() {
     return (
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-            <div className="text-center">
-                <h1 className="text-4xl font-bold text-white mb-4">Nexum</h1>
-                <p className="text-slate-400">Plataforma de gestão de assinaturas</p>
-            </div>
+        <div className="min-h-screen bg-[#FDFBF7] font-sans selection:bg-rose-200 selection:text-stone-900">
+            <Header />
+
+            <main>
+                <HeroSection />
+                <FeaturesSection />
+            </main>
         </div>
-    )
+    );
 }
