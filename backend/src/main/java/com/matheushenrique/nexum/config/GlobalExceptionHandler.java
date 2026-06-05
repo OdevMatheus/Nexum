@@ -21,6 +21,11 @@ public class GlobalExceptionHandler {
             Instant timestamp
     ) {}
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     @ExceptionHandler(SubscriptionNotFoundException.class)
     public ResponseEntity<MessageResponse> handleSubscriptionNotFound(SubscriptionNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
