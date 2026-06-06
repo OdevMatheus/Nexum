@@ -20,6 +20,17 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
             UUID clientId, UUID planId, List<Subscription.Status> statuses
     );
 
+    @Query("SELECT COUNT(s) FROM Subscription s WHERE s.owner.id = :ownerId AND s.status = 'ACTIVE'")
+    long countActiveByOwnerId(@Param("ownerId") UUID ownerId);
+
+    @Query("SELECT COUNT(s) FROM Subscription s WHERE s.owner.id = :ownerId AND s.status IN ('OVERDUE', 'SUSPENDED')")
+    long countOverdueByOwnerId(@Param("ownerId") UUID ownerId);
+
+    @Query("SELECT s FROM Subscription s WHERE s.owner.id = :ownerId AND s.status = 'ACTIVE' AND s.nextDueDate BETWEEN :from AND :to ORDER BY s.nextDueDate ASC")
+    List<Subscription> findUpcoming(@Param("ownerId") UUID ownerId,
+                                    @Param("from") LocalDate from,
+                                    @Param("to") LocalDate to);
+
     @Query("""
         SELECT s FROM Subscription s
         JOIN FETCH s.client
