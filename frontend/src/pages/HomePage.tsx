@@ -4,7 +4,7 @@ import { FeaturesSection } from '../components/landing/FeaturesSection'; // <-- 
 
 export default function HomePage() {
     return (
-        <div className="min-h-screen bg-[#FDFBF7] font-sans selection:bg-rose-200 selection:text-stone-900">
+        <div className="min-h-screen bg-[#FDFBF7] dark:bg-stone-950 font-sans selection:bg-rose-200 selection:text-stone-900 dark:selection:bg-rose-500/30 dark:selection:text-rose-100 transition-colors duration-500">
             <Header />
 
             <main>
