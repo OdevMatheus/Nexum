@@ -42,11 +42,12 @@ public class SubscriptionController {
     public ResponseEntity<PageResponse<SubscriptionResponse>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) Subscription.Status status,
             @RequestParam(required = false) UUID clientId,
             @RequestParam(required = false) UUID planId
     ) {
-        return ResponseEntity.ok(subscriptionService.findAll(page, size, status, clientId, planId));
+        return ResponseEntity.ok(subscriptionService.findAll(page, size, search, status, clientId, planId));
     }
 
     @GetMapping("/{id}")

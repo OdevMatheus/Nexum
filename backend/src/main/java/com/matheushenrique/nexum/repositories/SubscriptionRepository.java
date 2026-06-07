@@ -33,15 +33,17 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
     @Query("""
         SELECT s FROM Subscription s
-        JOIN FETCH s.client
-        JOIN FETCH s.plan
+        JOIN FETCH s.client c
+        JOIN FETCH s.plan p
         WHERE s.owner.id = :ownerId
         AND (:status IS NULL OR s.status = :status)
-        AND (:clientId IS NULL OR s.client.id = :clientId)
-        AND (:planId IS NULL OR s.plan.id = :planId)
+        AND (:clientId IS NULL OR c.id = :clientId)
+        AND (:planId IS NULL OR p.id = :planId)
+        AND (:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))
     """)
     Page<Subscription> findAllByOwner(
             @Param("ownerId") UUID ownerId,
+            @Param("search") String search,
             @Param("status") Subscription.Status status,
             @Param("clientId") UUID clientId,
             @Param("planId") UUID planId,
