@@ -66,3 +66,5 @@ resend:
 
 app:
   base-url: ${APP_BASE_URL:http://localhost:8080}
+  seeder:
+    enabled: ${SEEDER_ENABLED:true}
