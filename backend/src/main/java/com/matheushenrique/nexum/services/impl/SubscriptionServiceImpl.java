@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,12 +67,14 @@ public class SubscriptionServiceImpl {
 
         LocalDate startDate = request.startDate();
         LocalDate nextDueDate = calculateNextDueDate(startDate, plan);
+        
+        Subscription.Status initialStatus = plan.getTrialDays() > 0 ? Subscription.Status.TRIAL : Subscription.Status.ACTIVE;
 
         var subscription = Subscription.builder()
                 .owner(owner)
                 .client(client)
                 .plan(plan)
-                .status(Subscription.Status.ACTIVE)
+                .status(initialStatus)
                 .startDate(startDate)
                 .nextDueDate(nextDueDate)
                 .build();
@@ -80,7 +83,7 @@ public class SubscriptionServiceImpl {
 
         createCycle(subscription, nextDueDate, plan.getAmountCents());
 
-        publishEvent(null, Subscription.Status.ACTIVE, subscription);
+        publishEvent(null, initialStatus, subscription);
 
         return SubscriptionResponse.from(subscription);
     }
@@ -89,6 +92,7 @@ public class SubscriptionServiceImpl {
 
     public PageResponse<SubscriptionResponse> findAll(
             int page, int size,
+            String search,
             Subscription.Status status,
             UUID clientId,
             UUID planId
@@ -97,7 +101,7 @@ public class SubscriptionServiceImpl {
         var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<Subscription> result = subscriptionRepository.findAllByOwner(
-                owner.getId(), status, clientId, planId, pageable
+                owner.getId(), search, status, clientId, planId, pageable
         );
 
         return PageResponse.from(result.map(SubscriptionResponse::from));
@@ -180,6 +184,9 @@ public class SubscriptionServiceImpl {
     // Helpers
 
     private LocalDate calculateNextDueDate(LocalDate from, Plan plan) {
+        if (plan.getTrialDays() > 0) {
+            return from.plusDays(plan.getTrialDays());
+        }
         return switch (plan.getRecurrence()) {
             case MONTHLY    -> from.plusMonths(1);
             case QUARTERLY  -> from.plusMonths(3);
@@ -217,6 +224,9 @@ public class SubscriptionServiceImpl {
     }
 
     private User authenticatedUser() {
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = new User();
+        user.setId(UUID.fromString(principal.getUsername()));
+        return user;
     }
 }
