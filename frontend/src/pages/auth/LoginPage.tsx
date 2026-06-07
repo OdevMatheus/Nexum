@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom'
 import type { LoginRequest } from '../../types/auth.ts'
 import { getErrorMessage } from '../../services/authService.ts'
 import { Header } from '../../components/landing/Header'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 export default function LoginPage() {
+    useDocumentTitle('Entrar na conta');
     const { mutate, isPending, error } = useLogin()
     const [form, setForm] = useState<LoginRequest>({
         email: '',

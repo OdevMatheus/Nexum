@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { authService } from '../../services/authService.ts';
 import type { AxiosError } from 'axios';
 import type { ErrorResponse } from '../../types/auth.ts';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 export default function VerifyEmailPage() {
+    useDocumentTitle('Verificar E-mail');
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const token = searchParams.get('token');

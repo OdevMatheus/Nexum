@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom'
 import type { RegisterRequest } from '../../types/auth.ts'
 import { getErrorMessage } from '../../services/authService.ts'
 import { Header } from '../../components/landing/Header'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 export default function RegisterPage() {
+    useDocumentTitle('Criar conta');
     const { mutate, isPending, isSuccess, error } = useRegister()
     const [form, setForm] = useState<RegisterRequest>({
         name: '',
