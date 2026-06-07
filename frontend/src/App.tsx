@@ -3,10 +3,12 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/auth/LoginPage.tsx'
 import RegisterPage from './pages/auth/RegisterPage.tsx'
 import VerifyEmailPage from './pages/auth/VerifyEmailPage.tsx'
+import DashboardPage from "./pages/dashboard/DashboardPage.tsx";
 import ClientsPage from "./pages/clients/ClientsPage.tsx";
 import ClientDetailPage from "./pages/clients/ClientDetailPage.tsx";
 import PlansPage from "./pages/plans/PlansPage.tsx";
 import PlanDetailPage from "./pages/plans/PlanDetailPage.tsx";
+import SubscriptionsPage from "./pages/subscriptions/SubscriptionsPage.tsx";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ThemeToggle } from "./components/ThemeToggle";
 
@@ -29,9 +31,7 @@ function App() {
                     path="/dashboard"
                     element={
                         <PrivateRoute>
-                            <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-                                <h1 className="text-white text-2xl">Dashboard — em breve</h1>
-                            </div>
+                            <DashboardPage />
                         </PrivateRoute>
                     }
                 />
@@ -40,6 +40,7 @@ function App() {
                 <Route path="/clients/:id" element={<PrivateRoute><ClientDetailPage /></PrivateRoute>} />
                 <Route path="/plans" element={<PrivateRoute><PlansPage /></PrivateRoute>} />
                 <Route path="/plans/:id" element={<PrivateRoute><PlanDetailPage /></PrivateRoute>} />
+                <Route path="/subscriptions" element={<PrivateRoute><SubscriptionsPage /></PrivateRoute>} />
             </Routes>
         </ThemeProvider>
     )
