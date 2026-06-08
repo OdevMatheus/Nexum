@@ -17,6 +17,8 @@ public interface SubscriptionCycleRepository extends JpaRepository<SubscriptionC
 
     Optional<SubscriptionCycle> findTopBySubscriptionIdOrderByDueDateDesc(UUID subscriptionId);
 
+    Optional<SubscriptionCycle> findTopBySubscriptionIdAndStatusInOrderByDueDateAsc(UUID subscriptionId, List<SubscriptionCycle.CycleStatus> statuses);
+
     @Query("SELECT COALESCE(SUM(c.amountCents), 0) FROM SubscriptionCycle c WHERE c.subscription.owner.id = :ownerId AND c.status = 'PENDING' AND YEAR(c.dueDate) = :year AND MONTH(c.dueDate) = :month")
     Long sumMrrByOwnerAndMonth(@Param("ownerId") UUID ownerId,
                                @Param("year") int year,

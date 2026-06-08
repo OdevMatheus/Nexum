@@ -68,6 +68,12 @@ public class SubscriptionController {
         return ResponseEntity.ok(subscriptionService.reactivate(id));
     }
 
+    @PostMapping("/{id}/pay")
+    @Operation(summary = "Pay Subscription", description = "Registra o pagamento manual de uma assinatura.")
+    public ResponseEntity<SubscriptionResponse> pay(@PathVariable UUID id) {
+        return ResponseEntity.ok(subscriptionService.pay(id));
+    }
+
     @GetMapping("/{id}/cycles")
     @Operation(summary = "Listar Ciclos", description = "Retorna todo o histórico de faturas e ciclos de cobrança gerados para essa assinatura.")
     public ResponseEntity<List<SubscriptionCycleResponse>> findCycles(@PathVariable UUID id) {

@@ -166,6 +166,45 @@ public class SubscriptionServiceImpl {
         return SubscriptionResponse.from(subscription);
     }
 
+    // reactivate
+
+    @Transactional
+    public SubscriptionResponse pay(UUID subscriptionId) {
+        var owner = authenticatedUser();
+        var subscription = subscriptionRepository.findByIdAndOwnerId(subscriptionId, owner.getId())
+                .orElseThrow(SubscriptionNotFoundException::new);
+
+        if (subscription.getStatus() == Subscription.Status.CANCELLED) {
+            throw new IllegalStateException("Cannot pay a cancelled subscription");
+        }
+
+        var cycle = cycleRepository.findTopBySubscriptionIdAndStatusInOrderByDueDateAsc(
+                subscriptionId,
+                List.of(SubscriptionCycle.CycleStatus.PENDING, SubscriptionCycle.CycleStatus.OVERDUE)
+        ).orElseThrow(() -> new IllegalStateException("No pending or overdue cycle found for this subscription"));
+
+        cycle.setStatus(SubscriptionCycle.CycleStatus.PAID);
+        cycle.setPaidAt(Instant.now());
+        cycleRepository.save(cycle);
+
+        var previousStatus = subscription.getStatus();
+        if (previousStatus == Subscription.Status.OVERDUE || previousStatus == Subscription.Status.SUSPENDED || previousStatus == Subscription.Status.TRIAL) {
+            subscription.setStatus(Subscription.Status.ACTIVE);
+        }
+
+        LocalDate newNextDueDate = calculateNextDueDate(subscription.getNextDueDate(), subscription.getPlan());
+        subscription.setNextDueDate(newNextDueDate);
+        subscriptionRepository.save(subscription);
+
+        createCycle(subscription, newNextDueDate, subscription.getPlan().getAmountCents());
+
+        if (previousStatus != subscription.getStatus()) {
+            publishEvent(previousStatus, subscription.getStatus(), subscription);
+        }
+
+        return SubscriptionResponse.from(subscription);
+    }
+
     // Ciclos
 
     public List<SubscriptionCycleResponse> findCycles(UUID subscriptionId) {
