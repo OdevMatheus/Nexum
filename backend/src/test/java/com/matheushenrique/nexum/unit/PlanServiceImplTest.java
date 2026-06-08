@@ -219,7 +219,7 @@ class PlanServiceImplTest {
             );
 
             assertThatThrownBy(() -> planService.create(request))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("Custom days");
 
             verify(planRepository, never()).save(any());
@@ -295,7 +295,7 @@ class PlanServiceImplTest {
                     .thenReturn(Optional.of(monthlyPlan));
 
             assertThatThrownBy(() -> planService.update(planId, request))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(IllegalStateException.class);
         }
 
         @Test

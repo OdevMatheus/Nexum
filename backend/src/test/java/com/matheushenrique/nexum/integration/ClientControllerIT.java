@@ -262,7 +262,7 @@ class ClientControllerIT extends IntegrationTestBase {
         @DisplayName("should return 404 for unknown client")
         void shouldReturn404ForUnknownClient() throws Exception {
             var request = new UpdateClientRequest(
-                    "X", "x@nexum.dev", null, null
+                    "Nome Valido", "x@nexum.dev", null, null
             );
 
             mockMvc.perform(put("/v1/clients/{id}", UUID.randomUUID())

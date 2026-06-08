@@ -67,7 +67,7 @@ public class PlanServiceImpl {
         UUID ownerId = getCurrentUserId();
 
         if (request.recurrence() == Plan.Recurrence.CUSTOM && request.customDays() == null) {
-            throw new IllegalArgumentException("Custom days is required for CUSTOM recurrence");
+            throw new IllegalStateException("Custom days is required for CUSTOM recurrence");
         }
 
         if (planRepository.existsByNameAndActiveTrueAndOwnerId(request.name(), ownerId)) {
@@ -100,7 +100,7 @@ public class PlanServiceImpl {
                 .orElseThrow(() -> new PlanNotFoundException("Plan not found"));
 
         if (request.recurrence() == Plan.Recurrence.CUSTOM && request.customDays() == null) {
-            throw new IllegalArgumentException("Custom days is required for CUSTOM recurrence");
+            throw new IllegalStateException("Custom days is required for CUSTOM recurrence");
         }
 
         if (planRepository.existsByNameAndActiveTrueAndIdNotAndOwnerId(request.name(), id, ownerId)) {
