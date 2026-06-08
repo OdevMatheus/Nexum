@@ -26,6 +26,9 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     @Query("SELECT COUNT(s) FROM Subscription s WHERE s.owner.id = :ownerId AND s.status IN ('OVERDUE', 'SUSPENDED')")
     long countOverdueByOwnerId(@Param("ownerId") UUID ownerId);
 
+    @Query("SELECT new com.matheushenrique.nexum.dtos.response.PlanDistributionResponse(p.id, p.name, COUNT(s.id)) FROM Subscription s JOIN s.plan p WHERE s.owner.id = :ownerId AND s.status IN ('ACTIVE', 'TRIAL') GROUP BY p.id, p.name ORDER BY COUNT(s.id) DESC")
+    List<com.matheushenrique.nexum.dtos.response.PlanDistributionResponse> countActiveByPlan(@Param("ownerId") UUID ownerId);
+
     @Query("SELECT s FROM Subscription s WHERE s.owner.id = :ownerId AND s.status = 'ACTIVE' AND s.nextDueDate BETWEEN :from AND :to ORDER BY s.nextDueDate ASC")
     List<Subscription> findUpcoming(@Param("ownerId") UUID ownerId,
                                     @Param("from") LocalDate from,

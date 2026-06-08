@@ -79,4 +79,9 @@ public class MetricsServiceImpl implements MetricsService {
                 .map(RecentPaymentResponse::from)
                 .toList();
     }
+
+    @Override
+    public List<PlanDistributionResponse> getActiveByPlan(UUID ownerId) {
+        return subscriptionRepository.countActiveByPlan(ownerId);
+    }
 }

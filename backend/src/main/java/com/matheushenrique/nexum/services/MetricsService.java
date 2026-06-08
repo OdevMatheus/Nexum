@@ -9,4 +9,5 @@ public interface MetricsService {
     List<MonthlyRevenueResponse> getMonthlyRevenue(UUID ownerId);
     List<UpcomingSubscriptionResponse> getUpcoming(UUID ownerId);
     List<RecentPaymentResponse> getRecentPayments(UUID ownerId);
+    List<PlanDistributionResponse> getActiveByPlan(UUID ownerId);
 }

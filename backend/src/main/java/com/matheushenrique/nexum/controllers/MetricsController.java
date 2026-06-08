@@ -50,4 +50,11 @@ public class MetricsController {
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getRecentPayments(UUID.fromString(user.getUsername())));
     }
+
+    @GetMapping("/active-by-plan")
+    @Operation(summary = "Get Active Subscriptions By Plan", description = "Retorna a distribuição de assinaturas ativas por plano")
+    public ResponseEntity<List<PlanDistributionResponse>> activeByPlan(
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(metricsService.getActiveByPlan(UUID.fromString(user.getUsername())));
+    }
 }
