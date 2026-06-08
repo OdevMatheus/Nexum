@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ShieldAlert, Search, SlidersHorizontal, DollarSign } from 'lucide-react';
 import { useSubscriptions, useCreateSubscription, useCancelSubscription, usePaySubscription } from '../../hooks/useSubscriptions';
+import type { SubscriptionFilters } from '../../services/subscriptionService';
 import { useClients } from '../../hooks/useClients';
 import { usePlans } from '../../hooks/usePlans';
 import { getErrorMessage } from '../../services/authService';
@@ -14,10 +15,27 @@ export default function SubscriptionsPage() {
     useDocumentTitle('Assinaturas');
     
     const [searchParams] = useSearchParams();
-    const [page, setPage] = useState(0);
-    const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || '');
-    const [planIdFilter, setPlanIdFilter] = useState<string>(searchParams.get('planId') || '');
+    const [filters, setFilters] = useState<SubscriptionFilters>({
+        page: 0,
+        size: 10,
+        search: searchParams.get('search') || '',
+        status: searchParams.get('status') || '',
+        planId: searchParams.get('planId') || '',
+        startDateFrom: searchParams.get('startDateFrom') || '',
+        startDateTo: searchParams.get('startDateTo') || '',
+        nextDueDateFrom: searchParams.get('nextDueDateFrom') || '',
+        nextDueDateTo: searchParams.get('nextDueDateTo') || '',
+    });
+
+    const [localFilters, setLocalFilters] = useState<SubscriptionFilters>({
+        status: filters.status,
+        planId: filters.planId,
+        startDateFrom: filters.startDateFrom,
+        startDateTo: filters.startDateTo,
+        nextDueDateFrom: filters.nextDueDateFrom,
+        nextDueDateTo: filters.nextDueDateTo,
+    });
+
     const [showForm, setShowForm] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const filtersRef = useRef<HTMLDivElement>(null);
@@ -30,7 +48,7 @@ export default function SubscriptionsPage() {
     const [planId, setPlanId] = useState('');
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
 
-    const { data: subscriptionsData, isLoading } = useSubscriptions(page, 10, search || undefined, statusFilter || undefined, undefined, planIdFilter || undefined);
+    const { data: subscriptionsData, isLoading } = useSubscriptions(filters);
     
     // Fetch clients and plans for the select inputs (fetching a large page for simplicity in this MVP)
     const { data: clientsData, isLoading: loadingClients } = useClients(0, 100);
@@ -173,8 +191,8 @@ export default function SubscriptionsPage() {
                     <input
                         type="text"
                         placeholder="Buscar assinaturas por nome do cliente..."
-                        value={search}
-                        onChange={e => { setSearch(e.target.value); setPage(0); }}
+                        value={filters.search || ''}
+                        onChange={e => setFilters(f => ({ ...f, search: e.target.value, page: 0 }))}
                         className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all shadow-sm dark:shadow-none"
                     />
                 </div>
@@ -183,13 +201,14 @@ export default function SubscriptionsPage() {
                     <button
                         onClick={() => setShowFilters(!showFilters)}
                         className={`flex items-center justify-center h-full px-4 rounded-2xl border transition-all ${
-                            (statusFilter !== '' || planIdFilter !== '')
+                            (filters.status || filters.planId || filters.startDateFrom || filters.startDateTo || filters.nextDueDateFrom || filters.nextDueDateTo)
                             ? 'bg-rose-50 border-rose-200 text-rose-600 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-400'
                             : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-300 dark:hover:bg-stone-800'
                         }`}
                     >
                         <SlidersHorizontal className="w-5 h-5" />
-                        {(statusFilter !== '' || planIdFilter !== '') && (
+                        <span className="ml-2 text-sm font-medium hidden sm:block">Filtros Avançados</span>
+                        {(filters.status || filters.planId || filters.startDateFrom || filters.startDateTo || filters.nextDueDateFrom || filters.nextDueDateTo) && (
                             <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 border-2 border-white dark:border-stone-950 rounded-full" />
                         )}
                     </button>
@@ -201,15 +220,15 @@ export default function SubscriptionsPage() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                 transition={{ duration: 0.15 }}
-                                className="absolute right-0 top-14 w-64 p-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl dark:shadow-2xl z-50"
+                                className="absolute right-0 top-14 w-80 p-5 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl dark:shadow-2xl z-50"
                             >
-                                <h3 className="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3">Filtros Avançados</h3>
-                                <div className="space-y-4">
+                                <h3 className="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-4">Filtros Avançados</h3>
+                                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                                     <div>
-                                        <label className="block text-stone-700 dark:text-stone-300 text-sm font-medium mb-1.5">Status da Assinatura</label>
+                                        <label className="block text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5">Status da Assinatura</label>
                                         <select
-                                            value={statusFilter}
-                                            onChange={e => { setStatusFilter(e.target.value); setPage(0); }}
+                                            value={localFilters.status || ''}
+                                            onChange={e => setLocalFilters(f => ({ ...f, status: e.target.value }))}
                                             className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all appearance-none"
                                         >
                                             <option value="">Todos os status</option>
@@ -220,15 +239,81 @@ export default function SubscriptionsPage() {
                                             <option value="CANCELLED">Canceladas</option>
                                         </select>
                                     </div>
-                                    {(statusFilter !== '' || planIdFilter !== '') && (
+                                    <div>
+                                        <label className="block text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5">Plano</label>
+                                        <select
+                                            value={localFilters.planId || ''}
+                                            onChange={e => setLocalFilters(f => ({ ...f, planId: e.target.value }))}
+                                            className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all appearance-none"
+                                        >
+                                            <option value="">Todos os planos</option>
+                                            {plansData?.content.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5">Início (De)</label>
+                                            <input
+                                                type="date"
+                                                value={localFilters.startDateFrom || ''}
+                                                onChange={e => setLocalFilters(f => ({ ...f, startDateFrom: e.target.value }))}
+                                                className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5">Início (Até)</label>
+                                            <input
+                                                type="date"
+                                                value={localFilters.startDateTo || ''}
+                                                onChange={e => setLocalFilters(f => ({ ...f, startDateTo: e.target.value }))}
+                                                className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5">Vencimento (De)</label>
+                                            <input
+                                                type="date"
+                                                value={localFilters.nextDueDateFrom || ''}
+                                                onChange={e => setLocalFilters(f => ({ ...f, nextDueDateFrom: e.target.value }))}
+                                                className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-stone-700 dark:text-stone-300 text-xs font-medium mb-1.5">Vencimento (Até)</label>
+                                            <input
+                                                type="date"
+                                                value={localFilters.nextDueDateTo || ''}
+                                                onChange={e => setLocalFilters(f => ({ ...f, nextDueDateTo: e.target.value }))}
+                                                className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-5 pt-4 border-t border-stone-100 dark:border-stone-800 flex flex-col gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setFilters(f => ({ ...f, ...localFilters, page: 0 }));
+                                            setShowFilters(false);
+                                        }}
+                                        className="w-full bg-rose-600 hover:bg-rose-500 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+                                    >
+                                        Aplicar Filtros
+                                    </button>
+                                    {(filters.status || filters.planId || filters.startDateFrom || filters.startDateTo || filters.nextDueDateFrom || filters.nextDueDateTo) && (
                                         <button
                                             onClick={() => {
-                                                setStatusFilter('');
-                                                setPlanIdFilter('');
-                                                setPage(0);
+                                                const emptyFilters = {
+                                                    status: '', planId: '', startDateFrom: '', startDateTo: '', nextDueDateFrom: '', nextDueDateTo: ''
+                                                };
+                                                setLocalFilters(emptyFilters);
+                                                setFilters(f => ({ ...f, ...emptyFilters, page: 0 }));
                                                 setShowFilters(false);
                                             }}
-                                            className="w-full text-sm text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium py-2 transition-colors"
+                                            className="w-full text-sm text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 font-medium py-2 transition-colors"
                                         >
                                             Limpar Filtros
                                         </button>
@@ -338,14 +423,14 @@ export default function SubscriptionsPage() {
                         </p>
                         <div className="flex gap-2">
                             <button
-                                onClick={() => setPage(p => Math.max(0, p - 1))}
-                                disabled={page === 0}
+                                onClick={() => setFilters(f => ({ ...f, page: Math.max(0, (f.page || 0) - 1) }))}
+                                disabled={!filters.page || filters.page === 0}
                                 className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-50 text-stone-700 dark:text-stone-300 text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm dark:shadow-none"
                             >
                                 Anterior
                             </button>
                             <button
-                                onClick={() => setPage(p => p + 1)}
+                                onClick={() => setFilters(f => ({ ...f, page: (f.page || 0) + 1 }))}
                                 disabled={subscriptionsData?.last}
                                 className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-50 text-stone-700 dark:text-stone-300 text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm dark:shadow-none"
                             >

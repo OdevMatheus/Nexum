@@ -20,7 +20,7 @@ export default function DashboardPage() {
     const { data: upcoming, isLoading: loadingUpcoming } = useUpcomingSubscriptions();
     const { data: monthlyRevenue, isLoading: loadingRevenue } = useMonthlyRevenue();
     const { data: planDistribution, isLoading: loadingPlanDist } = useActiveByPlan();
-    const { data: activeSubsData, isLoading: loadingActiveSubs } = useSubscriptions(0, 50, undefined, 'ACTIVE');
+    const { data: activeSubsData, isLoading: loadingActiveSubs } = useSubscriptions({ status: 'ACTIVE', size: 50 });
 
     const formatCurrency = (cents: number) => {
         return new Intl.NumberFormat('pt-BR', {

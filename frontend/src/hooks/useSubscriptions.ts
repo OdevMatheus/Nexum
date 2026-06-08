@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { subscriptionService } from '../services/subscriptionService'
+import { subscriptionService, type SubscriptionFilters } from '../services/subscriptionService'
 import type { CreateSubscriptionRequest } from '../types/subscription'
 
-export const useSubscriptions = (page: number = 0, size: number = 10, search?: string, status?: string, clientId?: string, planId?: string) => {
+export const useSubscriptions = (filters: SubscriptionFilters = {}) => {
     return useQuery({
-        queryKey: ['subscriptions', page, size, search, status, clientId, planId],
-        queryFn: () => subscriptionService.findAll(page, size, search, status, clientId, planId),
+        queryKey: ['subscriptions', filters],
+        queryFn: () => subscriptionService.findAll(filters),
     })
 }
 
