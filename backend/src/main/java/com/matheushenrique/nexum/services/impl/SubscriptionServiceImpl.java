@@ -95,14 +95,37 @@ public class SubscriptionServiceImpl {
             String search,
             Subscription.Status status,
             UUID clientId,
-            UUID planId
+            UUID planId,
+            LocalDate startDateFrom,
+            LocalDate startDateTo,
+            LocalDate nextDueDateFrom,
+            LocalDate nextDueDateTo
     ) {
         var owner = authenticatedUser();
         var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Page<Subscription> result = subscriptionRepository.findAllByOwner(
-                owner.getId(), search, status, clientId, planId, pageable
-        );
+        var spec = org.springframework.data.jpa.domain.Specification.where(com.matheushenrique.nexum.repositories.specifications.SubscriptionSpecification.hasOwner(owner.getId()));
+
+        if (search != null && !search.isBlank()) {
+            spec = spec.and(com.matheushenrique.nexum.repositories.specifications.SubscriptionSpecification.searchByClientName(search));
+        }
+        if (status != null) {
+            spec = spec.and(com.matheushenrique.nexum.repositories.specifications.SubscriptionSpecification.hasStatus(status));
+        }
+        if (clientId != null) {
+            spec = spec.and(com.matheushenrique.nexum.repositories.specifications.SubscriptionSpecification.hasClient(clientId));
+        }
+        if (planId != null) {
+            spec = spec.and(com.matheushenrique.nexum.repositories.specifications.SubscriptionSpecification.hasPlan(planId));
+        }
+        if (startDateFrom != null || startDateTo != null) {
+            spec = spec.and(com.matheushenrique.nexum.repositories.specifications.SubscriptionSpecification.startDateBetween(startDateFrom, startDateTo));
+        }
+        if (nextDueDateFrom != null || nextDueDateTo != null) {
+            spec = spec.and(com.matheushenrique.nexum.repositories.specifications.SubscriptionSpecification.nextDueDateBetween(nextDueDateFrom, nextDueDateTo));
+        }
+
+        Page<Subscription> result = subscriptionRepository.findAll(spec, pageable);
 
         return PageResponse.from(result.map(SubscriptionResponse::from));
     }

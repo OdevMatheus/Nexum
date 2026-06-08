@@ -45,9 +45,13 @@ public class SubscriptionController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Subscription.Status status,
             @RequestParam(required = false) UUID clientId,
-            @RequestParam(required = false) UUID planId
+            @RequestParam(required = false) UUID planId,
+            @RequestParam(required = false) java.time.LocalDate startDateFrom,
+            @RequestParam(required = false) java.time.LocalDate startDateTo,
+            @RequestParam(required = false) java.time.LocalDate nextDueDateFrom,
+            @RequestParam(required = false) java.time.LocalDate nextDueDateTo
     ) {
-        return ResponseEntity.ok(subscriptionService.findAll(page, size, search, status, clientId, planId));
+        return ResponseEntity.ok(subscriptionService.findAll(page, size, search, status, clientId, planId, startDateFrom, startDateTo, nextDueDateFrom, nextDueDateTo));
     }
 
     @GetMapping("/{id}")

@@ -277,10 +277,10 @@ class SubscriptionServiceImplTest {
         @DisplayName("should return paginated list of subscriptions")
         void shouldReturnPaginatedSubscriptions() {
             var page = new PageImpl<>(List.of(activeSubscription));
-            when(subscriptionRepository.findAllByOwner(eq(ownerId), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+            when(subscriptionRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-            var response = subscriptionService.findAll(0, 10, null, null, null, null);
+            var response = subscriptionService.findAll(0, 10, null, null, null, null, null, null, null, null);
 
             assertThat(response.content()).hasSize(1);
             assertThat(response.content().get(0).status()).isEqualTo(Subscription.Status.ACTIVE);
@@ -290,14 +290,14 @@ class SubscriptionServiceImplTest {
         @DisplayName("should filter by status")
         void shouldFilterByStatus() {
             var page = new PageImpl<>(List.of(activeSubscription));
-            when(subscriptionRepository.findAllByOwner(eq(ownerId), isNull(), eq(Subscription.Status.ACTIVE), isNull(), isNull(), any(Pageable.class)))
+            when(subscriptionRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class)))
                     .thenReturn(page);
 
-            var response = subscriptionService.findAll(0, 10, null, Subscription.Status.ACTIVE, null, null);
+            var response = subscriptionService.findAll(0, 10, null, Subscription.Status.ACTIVE, null, null, null, null, null, null);
 
             assertThat(response.content()).hasSize(1);
-            verify(subscriptionRepository).findAllByOwner(
-                    eq(ownerId), isNull(), eq(Subscription.Status.ACTIVE), isNull(), isNull(), any(Pageable.class)
+            verify(subscriptionRepository).findAll(
+                    any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class)
             );
         }
     }
