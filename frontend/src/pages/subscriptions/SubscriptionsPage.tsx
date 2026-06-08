@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ShieldAlert, Search, SlidersHorizontal } from 'lucide-react';
-import { useSubscriptions, useCreateSubscription, useCancelSubscription } from '../../hooks/useSubscriptions';
+import { Plus, ShieldAlert, Search, SlidersHorizontal, DollarSign } from 'lucide-react';
+import { useSubscriptions, useCreateSubscription, useCancelSubscription, usePaySubscription } from '../../hooks/useSubscriptions';
 import { useClients } from '../../hooks/useClients';
 import { usePlans } from '../../hooks/usePlans';
 import { getErrorMessage } from '../../services/authService';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import type { Subscription } from '../../types/subscription';
 
 export default function SubscriptionsPage() {
     useDocumentTitle('Assinaturas');
@@ -17,6 +18,9 @@ export default function SubscriptionsPage() {
     const [showForm, setShowForm] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const filtersRef = useRef<HTMLDivElement>(null);
+    
+    const [payModalOpen, setPayModalOpen] = useState(false);
+    const [selectedSubForPay, setSelectedSubForPay] = useState<Subscription | null>(null);
     
     // Form state
     const [clientId, setClientId] = useState('');
@@ -31,6 +35,7 @@ export default function SubscriptionsPage() {
 
     const { mutate: createSub, isPending: creating, error: createError } = useCreateSubscription();
     const { mutate: cancelSub, isPending: canceling } = useCancelSubscription();
+    const { mutate: paySub, isPending: paying } = usePaySubscription();
 
     const handleCreate = () => {
         if (!clientId || !planId) return;
@@ -40,6 +45,16 @@ export default function SubscriptionsPage() {
                 setClientId('');
                 setPlanId('');
                 setStartDate(new Date().toISOString().split('T')[0]);
+            }
+        });
+    };
+
+    const handlePayConfirm = () => {
+        if (!selectedSubForPay) return;
+        paySub(selectedSubForPay.id, {
+            onSuccess: () => {
+                setPayModalOpen(false);
+                setSelectedSubForPay(null);
             }
         });
     };
@@ -258,18 +273,32 @@ export default function SubscriptionsPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                {sub.status !== 'CANCELLED' ? (
-                                                    <button
-                                                        onClick={() => cancelSub(sub.id)}
-                                                        disabled={canceling}
-                                                        className="inline-flex items-center justify-center p-2 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
-                                                        title="Cancelar Assinatura"
-                                                    >
-                                                        <ShieldAlert className="w-4 h-4" />
-                                                    </button>
-                                                ) : (
-                                                    <span className="text-stone-400 dark:text-stone-600 text-xs font-medium px-2">—</span>
-                                                )}
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {sub.status !== 'CANCELLED' && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedSubForPay(sub);
+                                                                setPayModalOpen(true);
+                                                            }}
+                                                            className="inline-flex items-center justify-center p-2 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:text-emerald-500 dark:hover:bg-emerald-500/10 transition-colors"
+                                                            title="Marcar Pagamento"
+                                                        >
+                                                            <DollarSign className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                    {sub.status !== 'CANCELLED' ? (
+                                                        <button
+                                                            onClick={() => cancelSub(sub.id)}
+                                                            disabled={canceling}
+                                                            className="inline-flex items-center justify-center p-2 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                                                            title="Cancelar Assinatura"
+                                                        >
+                                                            <ShieldAlert className="w-4 h-4" />
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-stone-400 dark:text-stone-600 text-xs font-medium px-2">—</span>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -308,6 +337,44 @@ export default function SubscriptionsPage() {
                     </div>
                 </>
             )}
+
+            <AnimatePresence>
+                {payModalOpen && selectedSubForPay && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-6 w-full max-w-md shadow-xl"
+                        >
+                            <h2 className="text-lg font-bold text-stone-800 dark:text-stone-100 mb-2">Confirmar Pagamento</h2>
+                            <p className="text-stone-600 dark:text-stone-400 text-sm mb-6">
+                                Deseja confirmar o pagamento para a assinatura de <strong>{selectedSubForPay.clientName}</strong>? O próximo vencimento será atualizado.
+                            </p>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => {
+                                        setPayModalOpen(false);
+                                        setSelectedSubForPay(null);
+                                    }}
+                                    className="bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={handlePayConfirm}
+                                    disabled={paying}
+                                    className="bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+                                >
+                                    {paying ? 'Processando...' : 'Confirmar Pagamento'}
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </DashboardLayout>
     );
 }

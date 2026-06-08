@@ -57,3 +57,16 @@ export const useReactivateSubscription = () => {
         },
     })
 }
+
+export const usePaySubscription = () => {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: (id: string) => subscriptionService.pay(id),
+        onSuccess: (_, id) => {
+            queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+            queryClient.invalidateQueries({ queryKey: ['subscription', id] })
+            queryClient.invalidateQueries({ queryKey: ['subscription-cycles'] })
+            queryClient.invalidateQueries({ queryKey: ['metrics'] })
+        },
+    })
+}

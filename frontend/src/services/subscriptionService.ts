@@ -38,6 +38,11 @@ export const subscriptionService = {
         return response.data
     },
 
+    pay: async (id: string) => {
+        const response = await api.post<Subscription>(`/v1/subscriptions/${id}/pay`)
+        return response.data
+    },
+
     getCycles: async (id: string) => {
         const response = await api.get<SubscriptionCycle[]>(`/v1/subscriptions/${id}/cycles`)
         return response.data
