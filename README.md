@@ -251,8 +251,8 @@ This project is proprietary and confidential.
 
 ---
 
-<div align="center">
+<!-- <div align="center">
 
 [![Star History Chart](https://api.star-history.com/svg?repos=OdevMatheus/nexus-monorepo&type=Date)](https://star-history.com/#OdevMatheus/nexus-monorepo&Date)
 
-</div>
+</div> --!>

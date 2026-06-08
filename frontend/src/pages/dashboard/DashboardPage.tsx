@@ -4,7 +4,7 @@ import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useMetricsSummary, useRecentPayments, useUpcomingSubscriptions, useMonthlyRevenue, useActiveByPlan } from '../../hooks/useMetrics';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { Users, AlertCircle, Clock, DollarSign, TrendingUp, Calendar, CheckCircle, XCircle, X, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -29,7 +29,7 @@ export default function DashboardPage() {
         }).format(cents / 100);
     };
 
-    const containerVariants = {
+    const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
@@ -37,7 +37,7 @@ export default function DashboardPage() {
         }
     };
 
-    const itemVariants = {
+    const itemVariants: Variants = {
         hidden: { opacity: 0, y: 20 },
         visible: {
             opacity: 1,
