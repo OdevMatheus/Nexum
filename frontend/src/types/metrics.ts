@@ -29,3 +29,9 @@ export interface UpcomingSubscription {
     dueDate: string;
     amount: number; // in cents
 }
+
+export interface PlanDistribution {
+    planId: string;
+    planName: string;
+    count: number;
+}

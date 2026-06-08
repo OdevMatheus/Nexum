@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, ShieldAlert, Search, SlidersHorizontal, DollarSign } from 'lucide-react';
 import { useSubscriptions, useCreateSubscription, useCancelSubscription, usePaySubscription } from '../../hooks/useSubscriptions';
@@ -12,9 +13,11 @@ import type { Subscription } from '../../types/subscription';
 export default function SubscriptionsPage() {
     useDocumentTitle('Assinaturas');
     
+    const [searchParams] = useSearchParams();
     const [page, setPage] = useState(0);
     const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('');
+    const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || '');
+    const [planIdFilter, setPlanIdFilter] = useState<string>(searchParams.get('planId') || '');
     const [showForm, setShowForm] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const filtersRef = useRef<HTMLDivElement>(null);
@@ -27,7 +30,7 @@ export default function SubscriptionsPage() {
     const [planId, setPlanId] = useState('');
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
 
-    const { data: subscriptionsData, isLoading } = useSubscriptions(page, 10, search || undefined, statusFilter || undefined);
+    const { data: subscriptionsData, isLoading } = useSubscriptions(page, 10, search || undefined, statusFilter || undefined, undefined, planIdFilter || undefined);
     
     // Fetch clients and plans for the select inputs (fetching a large page for simplicity in this MVP)
     const { data: clientsData, isLoading: loadingClients } = useClients(0, 100);
@@ -180,13 +183,13 @@ export default function SubscriptionsPage() {
                     <button
                         onClick={() => setShowFilters(!showFilters)}
                         className={`flex items-center justify-center h-full px-4 rounded-2xl border transition-all ${
-                            statusFilter !== '' 
+                            (statusFilter !== '' || planIdFilter !== '')
                             ? 'bg-rose-50 border-rose-200 text-rose-600 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-400'
                             : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50 dark:bg-stone-900 dark:border-stone-800 dark:text-stone-300 dark:hover:bg-stone-800'
                         }`}
                     >
                         <SlidersHorizontal className="w-5 h-5" />
-                        {statusFilter !== '' && (
+                        {(statusFilter !== '' || planIdFilter !== '') && (
                             <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 border-2 border-white dark:border-stone-950 rounded-full" />
                         )}
                     </button>
@@ -201,20 +204,35 @@ export default function SubscriptionsPage() {
                                 className="absolute right-0 top-14 w-64 p-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl dark:shadow-2xl z-50"
                             >
                                 <h3 className="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-3">Filtros Avançados</h3>
-                                <div>
-                                    <label className="block text-stone-700 dark:text-stone-300 text-sm font-medium mb-1.5">Status da Assinatura</label>
-                                    <select
-                                        value={statusFilter}
-                                        onChange={e => { setStatusFilter(e.target.value); setPage(0); }}
-                                        className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all appearance-none"
-                                    >
-                                        <option value="">Todos os status</option>
-                                        <option value="ACTIVE">Ativas</option>
-                                        <option value="TRIAL">Trial</option>
-                                        <option value="OVERDUE">Vencidas</option>
-                                        <option value="SUSPENDED">Suspensas</option>
-                                        <option value="CANCELLED">Canceladas</option>
-                                    </select>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-stone-700 dark:text-stone-300 text-sm font-medium mb-1.5">Status da Assinatura</label>
+                                        <select
+                                            value={statusFilter}
+                                            onChange={e => { setStatusFilter(e.target.value); setPage(0); }}
+                                            className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all appearance-none"
+                                        >
+                                            <option value="">Todos os status</option>
+                                            <option value="ACTIVE">Ativas</option>
+                                            <option value="TRIAL">Trial</option>
+                                            <option value="OVERDUE">Vencidas</option>
+                                            <option value="SUSPENDED">Suspensas</option>
+                                            <option value="CANCELLED">Canceladas</option>
+                                        </select>
+                                    </div>
+                                    {(statusFilter !== '' || planIdFilter !== '') && (
+                                        <button
+                                            onClick={() => {
+                                                setStatusFilter('');
+                                                setPlanIdFilter('');
+                                                setPage(0);
+                                                setShowFilters(false);
+                                            }}
+                                            className="w-full text-sm text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium py-2 transition-colors"
+                                        >
+                                            Limpar Filtros
+                                        </button>
+                                    )}
                                 </div>
                             </motion.div>
                         )}

@@ -11,6 +11,16 @@ export const useMetricsSummary = () => {
     });
 };
 
+export const useActiveByPlan = () => {
+    return useQuery({
+        queryKey: ['metrics', 'active-by-plan'],
+        queryFn: metricsService.getActiveByPlan,
+        meta: {
+            errorMessage: 'Erro ao carregar a distribuição por plano'
+        }
+    });
+};
+
 export const useMonthlyRevenue = () => {
     return useQuery({
         queryKey: ['metrics', 'revenue'],

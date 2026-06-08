@@ -1,18 +1,26 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useMetricsSummary, useRecentPayments, useUpcomingSubscriptions, useMonthlyRevenue } from '../../hooks/useMetrics';
-import { motion } from 'framer-motion';
-import { Users, AlertCircle, Clock, DollarSign, TrendingUp, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { useMetricsSummary, useRecentPayments, useUpcomingSubscriptions, useMonthlyRevenue, useActiveByPlan } from '../../hooks/useMetrics';
+import { useSubscriptions } from '../../hooks/useSubscriptions';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, AlertCircle, Clock, DollarSign, TrendingUp, Calendar, CheckCircle, XCircle, X, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function DashboardPage() {
     useDocumentTitle('Dashboard');
+    const navigate = useNavigate();
+
+    const [activeModal, setActiveModal] = useState<'ACTIVE_SUBS' | null>(null);
 
     const { data: summary, isLoading: loadingSummary } = useMetricsSummary();
     const { data: recentPayments, isLoading: loadingPayments } = useRecentPayments();
     const { data: upcoming, isLoading: loadingUpcoming } = useUpcomingSubscriptions();
     const { data: monthlyRevenue, isLoading: loadingRevenue } = useMonthlyRevenue();
+    const { data: planDistribution, isLoading: loadingPlanDist } = useActiveByPlan();
+    const { data: activeSubsData, isLoading: loadingActiveSubs } = useSubscriptions(0, 50, undefined, 'ACTIVE');
 
     const formatCurrency = (cents: number) => {
         return new Intl.NumberFormat('pt-BR', {
@@ -42,6 +50,27 @@ export default function DashboardPage() {
         ? Math.max(...monthlyRevenue.map(m => m.amount)) 
         : 1;
 
+    const totalPlanDistribution = planDistribution?.reduce((acc, curr) => acc + curr.count, 0) || 0;
+    const planDistributionBars = planDistribution?.map(plan => {
+        const percentage = totalPlanDistribution > 0 ? Math.round((plan.count / totalPlanDistribution) * 100) : 0;
+        return (
+            <div key={plan.planName} className="cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/50 p-2 -mx-2 rounded-xl transition-colors" onClick={() => { setActiveModal(null); navigate('/subscriptions?status=ACTIVE' + (plan.planId ? `&planId=${plan.planId}` : '')); }}>
+                <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium text-stone-700 dark:text-stone-300">{plan.planName}</span>
+                    <span className="text-stone-500 dark:text-stone-400">{plan.count} ({percentage}%)</span>
+                </div>
+                <div className="w-full bg-stone-100 dark:bg-stone-800 rounded-full h-2.5 overflow-hidden">
+                    <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${percentage}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="bg-blue-500 h-2.5 rounded-full"
+                    ></motion.div>
+                </div>
+            </div>
+        );
+    });
+
     return (
         <DashboardLayout>
             <div className="space-y-8">
@@ -61,7 +90,11 @@ export default function DashboardPage() {
                     animate="visible"
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                 >
-                    <motion.div variants={itemVariants} className="bg-white dark:bg-stone-900 rounded-2xl p-6 border border-stone-100 dark:border-stone-800 shadow-sm flex flex-col justify-between">
+                    <motion.div 
+                        variants={itemVariants} 
+                        className="bg-white dark:bg-stone-900 rounded-2xl p-6 border border-stone-100 dark:border-stone-800 shadow-sm flex flex-col justify-between cursor-pointer hover:border-rose-500/50 transition-colors"
+                        onClick={() => setActiveModal('ACTIVE_SUBS')}
+                    >
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-stone-500 dark:text-stone-400 text-sm font-medium">Assinaturas Ativas</p>
@@ -220,6 +253,97 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Assinaturas Ativas */}
+            <AnimatePresence>
+                {activeModal === 'ACTIVE_SUBS' && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-stone-200 dark:border-stone-800 flex flex-col max-h-[90vh]"
+                        >
+                            <div className="flex items-center justify-between p-6 border-b border-stone-100 dark:border-stone-800">
+                                <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">Detalhamento: Assinaturas Ativas</h2>
+                                <button 
+                                    onClick={() => setActiveModal(null)}
+                                    className="p-2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <div className="p-6 overflow-y-auto flex-1 space-y-8">
+                                {/* Top Section: Progress Bars */}
+                                <div>
+                                    <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400 mb-4 uppercase tracking-wider">Distribuição por Plano</h3>
+                                    {loadingPlanDist ? (
+                                        <div className="flex justify-center py-4">
+                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                                        </div>
+                                    ) : planDistribution && planDistribution.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {planDistributionBars}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-stone-500">Nenhum dado de distribuição disponível.</p>
+                                    )}
+                                </div>
+
+                                {/* Bottom Section: Table */}
+                                <div>
+                                    <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400 mb-4 uppercase tracking-wider">Lista de Assinaturas</h3>
+                                    {loadingActiveSubs ? (
+                                        <div className="flex justify-center py-4">
+                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                                        </div>
+                                    ) : activeSubsData?.content && activeSubsData.content.length > 0 ? (
+                                        <div className="border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden">
+                                            <table className="w-full text-left text-sm">
+                                                <thead className="bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400">
+                                                    <tr>
+                                                        <th className="px-4 py-3 font-medium">Cliente</th>
+                                                        <th className="px-4 py-3 font-medium">Plano</th>
+                                                        <th className="px-4 py-3 font-medium">Início</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
+                                                    {activeSubsData.content.map(sub => (
+                                                        <tr key={sub.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+                                                            <td className="px-4 py-3 font-medium text-stone-800 dark:text-stone-200">
+                                                                <span 
+                                                                    onClick={() => { setActiveModal(null); navigate('/clients/' + sub.clientId); }} 
+                                                                    className="cursor-pointer text-rose-600 hover:text-rose-500 dark:text-rose-400 dark:hover:text-rose-300 hover:underline flex items-center gap-1 w-fit"
+                                                                >
+                                                                    {sub.clientName} <ArrowUpRight className="w-3 h-3"/>
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
+                                                                <span 
+                                                                    onClick={() => { setActiveModal(null); navigate('/plans/' + sub.planId); }} 
+                                                                    className="cursor-pointer text-rose-600 hover:text-rose-500 dark:text-rose-400 dark:hover:text-rose-300 hover:underline flex items-center gap-1 w-fit"
+                                                                >
+                                                                    {sub.planName} <ArrowUpRight className="w-3 h-3"/>
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
+                                                                {format(new Date(sub.startDate + 'T00:00:00'), "dd/MM/yyyy")}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-stone-500">Nenhuma assinatura ativa encontrada.</p>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </DashboardLayout>
     );
 }

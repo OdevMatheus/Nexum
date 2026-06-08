@@ -17,7 +17,7 @@ export default function ClientDetailPage() {
     const { mutate: update, isPending: updating, error: updateError } = useUpdateClient(id!);
     const { mutate: deactivate } = useDeactivateClient();
 
-    const { data: subscriptionsData, isLoading: isLoadingSubs } = useSubscriptions(0, 10, undefined, id, undefined);
+    const { data: subscriptionsData, isLoading: isLoadingSubs } = useSubscriptions(0, 10, undefined, undefined, id);
     const { data: plansData } = usePlans(0, 50, undefined, true);
     
     const { mutate: createSub, isPending: creatingSub, error: createSubError } = useCreateSubscription();

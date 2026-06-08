@@ -1,9 +1,13 @@
 import api from './authService';
-import type { MetricsSummary, MonthlyRevenue, RecentPayment, UpcomingSubscription } from '../types/metrics';
+import type { MetricsSummary, MonthlyRevenue, RecentPayment, UpcomingSubscription, PlanDistribution } from '../types/metrics';
 
 export const metricsService = {
     getSummary: async (): Promise<MetricsSummary> => {
         const response = await api.get<MetricsSummary>('/v1/metrics/summary');
+        return response.data;
+    },
+    getActiveByPlan: async (): Promise<PlanDistribution[]> => {
+        const response = await api.get<PlanDistribution[]>('/v1/metrics/active-by-plan');
         return response.data;
     },
     getMonthlyRevenue: async (): Promise<MonthlyRevenue[]> => {
