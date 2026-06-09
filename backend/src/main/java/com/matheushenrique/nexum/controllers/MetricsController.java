@@ -1,8 +1,10 @@
 package com.matheushenrique.nexum.controllers;
 
+import com.matheushenrique.nexum.config.ApiGlobalErrors;
 import com.matheushenrique.nexum.dtos.response.*;
 import com.matheushenrique.nexum.services.MetricsService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/metrics")
 @RequiredArgsConstructor
+@ApiGlobalErrors
+@SecurityRequirement(name = "bearer-key")
 @Tag(name = "5. Métricas", description = "Métricas e painel para o dashboard")
 public class MetricsController {
 
@@ -56,5 +60,19 @@ public class MetricsController {
     public ResponseEntity<List<PlanDistributionResponse>> activeByPlan(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getActiveByPlan(UUID.fromString(user.getUsername())));
+    }
+
+    @GetMapping("/mrr-by-plan")
+    @Operation(summary = "Get MRR Distribution By Plan", description = "Retorna a distribuição de MRR por plano para o mês atual")
+    public ResponseEntity<List<MrrDistributionResponse>> mrrByPlan(
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(metricsService.getMrrDistribution(UUID.fromString(user.getUsername())));
+    }
+
+    @GetMapping("/mrr-contributors")
+    @Operation(summary = "Get MRR Contributors", description = "Retorna a lista de faturas/clientes que contribuem para o MRR do mês atual")
+    public ResponseEntity<List<MrrContributorResponse>> mrrContributors(
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(metricsService.getMrrContributors(UUID.fromString(user.getUsername())));
     }
 }
