@@ -1,6 +1,7 @@
 package com.matheushenrique.nexum.services.impl;
 
 import com.matheushenrique.nexum.dtos.response.*;
+import com.matheushenrique.nexum.repositories.ClientRepository;
 import com.matheushenrique.nexum.repositories.SubscriptionCycleRepository;
 import com.matheushenrique.nexum.repositories.SubscriptionRepository;
 import com.matheushenrique.nexum.services.MetricsService;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,7 @@ public class MetricsServiceImpl implements MetricsService {
 
     private final SubscriptionRepository      subscriptionRepository;
     private final SubscriptionCycleRepository cycleRepository;
+    private final ClientRepository            clientRepository;
 
     @Override
     public MetricsSummaryResponse getSummary(UUID ownerId) {
@@ -108,5 +111,37 @@ public class MetricsServiceImpl implements MetricsService {
                         cycle.getAmountCents()
                 ))
                 .toList();
+    }
+
+    @Override
+    public List<ClientGrowthResponse> getClientGrowth(UUID ownerId) {
+        var clients = clientRepository.findAllByOwnerId(ownerId);
+        LocalDate today = LocalDate.now();
+        List<ClientGrowthResponse> result = new ArrayList<>();
+
+        for (int i = 5; i >= 0; i--) {
+            LocalDate monthDate = today.minusMonths(i);
+            YearMonth yearMonth = YearMonth.from(monthDate);
+            LocalDate lastDayOfMonth = yearMonth.atEndOfMonth();
+
+            long count = clients.stream()
+                    .filter(c -> {
+                        LocalDate clientDate = LocalDate.ofInstant(c.getCreatedAt(), java.time.ZoneId.systemDefault());
+                        return !clientDate.isAfter(lastDayOfMonth);
+                    })
+                    .count();
+
+            String label = monthDate.getMonth().getDisplayName(java.time.format.TextStyle.SHORT, new Locale("pt", "BR"));
+            label = label.substring(0, 1).toUpperCase() + label.substring(1);
+
+            result.add(new ClientGrowthResponse(
+                    monthDate.getYear(),
+                    monthDate.getMonthValue(),
+                    label,
+                    count
+            ));
+        }
+
+        return result;
     }
 }

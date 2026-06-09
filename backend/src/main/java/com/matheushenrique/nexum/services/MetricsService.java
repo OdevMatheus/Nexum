@@ -12,4 +12,5 @@ public interface MetricsService {
     List<PlanDistributionResponse> getActiveByPlan(UUID ownerId);
     List<MrrDistributionResponse> getMrrDistribution(UUID ownerId);
     List<MrrContributorResponse> getMrrContributors(UUID ownerId);
+    List<ClientGrowthResponse> getClientGrowth(UUID ownerId);
 }

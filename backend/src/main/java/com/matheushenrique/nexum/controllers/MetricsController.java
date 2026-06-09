@@ -75,4 +75,11 @@ public class MetricsController {
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getMrrContributors(UUID.fromString(user.getUsername())));
     }
+
+    @GetMapping("/client-growth")
+    @Operation(summary = "Get Client Growth Over Time", description = "Retorna o crescimento acumulado de clientes registrados nos últimos 6 meses")
+    public ResponseEntity<List<ClientGrowthResponse>> clientGrowth(
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(metricsService.getClientGrowth(UUID.fromString(user.getUsername())));
+    }
 }
