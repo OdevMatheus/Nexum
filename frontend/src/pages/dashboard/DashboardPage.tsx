@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useMetricsSummary, useRecentPayments, useUpcomingSubscriptions, useMonthlyRevenue, useActiveByPlan, useMrrByPlan, useMrrContributors } from '../../hooks/useMetrics';
+import { useMetricsSummary, useRecentPayments, useUpcomingSubscriptions, useClientGrowth, useActiveByPlan, useMrrByPlan, useMrrContributors } from '../../hooks/useMetrics';
 import { useSubscriptions, usePaySubscription } from '../../hooks/useSubscriptions';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { Users, AlertCircle, Clock, DollarSign, TrendingUp, Calendar, CheckCircle, XCircle, X, ArrowUpRight, MessageCircle, Check } from 'lucide-react';
+import { Users, AlertCircle, Clock, TrendingUp, Calendar, CheckCircle, XCircle, X, ArrowUpRight, MessageCircle, Check } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -18,7 +18,7 @@ export default function DashboardPage() {
     const { data: summary, isLoading: loadingSummary } = useMetricsSummary();
     const { data: recentPayments, isLoading: loadingPayments } = useRecentPayments();
     const { data: upcoming, isLoading: loadingUpcoming } = useUpcomingSubscriptions();
-    const { data: monthlyRevenue, isLoading: loadingRevenue } = useMonthlyRevenue();
+    const { data: clientGrowth, isLoading: loadingGrowth } = useClientGrowth();
     const { data: planDistribution, isLoading: loadingPlanDist } = useActiveByPlan();
     const { data: activeSubsData, isLoading: loadingActiveSubs } = useSubscriptions({ status: 'ACTIVE', size: 50 });
     const { data: mrrDistribution, isLoading: loadingMrrDist } = useMrrByPlan();
@@ -54,6 +54,128 @@ export default function DashboardPage() {
         }).format(cents / 100);
     };
 
+    // Cálculo das coordenadas do gráfico de linha
+    const renderGrowthChart = () => {
+        if (loadingGrowth) {
+            return <div className="h-64 flex items-center justify-center text-stone-400">Carregando...</div>;
+        }
+        if (!clientGrowth || clientGrowth.length === 0) {
+            return <div className="h-64 flex items-center justify-center text-stone-400">Sem dados de crescimento de clientes</div>;
+        }
+
+        const counts = clientGrowth.map(d => d.count);
+        const minVal = Math.min(...counts);
+        const maxVal = Math.max(...counts);
+        const range = maxVal - minVal || 1;
+        
+        const width = 500;
+        const height = 180;
+        const paddingLeft = 35;
+        const paddingRight = 35;
+        const paddingTop = 25;
+        const paddingBottom = 25;
+        
+        const chartWidth = width - paddingLeft - paddingRight;
+        const chartHeight = height - paddingTop - paddingBottom;
+
+        const points = clientGrowth.map((item, idx) => {
+            const x = paddingLeft + (idx / 5) * chartWidth;
+            const y = paddingTop + chartHeight - ((item.count - minVal) / range) * chartHeight;
+            
+            let percentageText = '+0%';
+            if (idx > 0) {
+                const prev = clientGrowth[idx - 1].count;
+                if (prev > 0) {
+                    const diff = ((item.count - prev) / prev) * 100;
+                    percentageText = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
+                } else if (item.count > 0) {
+                    percentageText = '+100%';
+                }
+            } else {
+                percentageText = 'Início';
+            }
+
+            return { x, y, label: item.label, count: item.count, percentageText };
+        });
+
+        const linePath = points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+        const areaPath = `${linePath} L ${points[points.length - 1].x} ${paddingTop + chartHeight} L ${points[0].x} ${paddingTop + chartHeight} Z`;
+
+        return (
+            <div className="relative">
+                {/* SVG Chart */}
+                <div className="h-64 w-full relative flex items-center justify-center">
+                    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+                        {/* Define gradients */}
+                        <defs>
+                            <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.25" />
+                                <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+                            </linearGradient>
+                        </defs>
+
+                        {/* Horizontal Grid lines */}
+                        <line x1={paddingLeft} y1={paddingTop} x2={width - paddingRight} y2={paddingTop} stroke="currentColor" className="text-stone-100 dark:text-stone-800/50" strokeDasharray="3,3" />
+                        <line x1={paddingLeft} y1={paddingTop + chartHeight / 2} x2={width - paddingRight} y2={paddingTop + chartHeight / 2} stroke="currentColor" className="text-stone-100 dark:text-stone-800/50" strokeDasharray="3,3" />
+                        <line x1={paddingLeft} y1={paddingTop + chartHeight} x2={width - paddingRight} y2={paddingTop + chartHeight} stroke="currentColor" className="text-stone-100 dark:text-stone-800/50" />
+
+                        {/* Area underneath the line */}
+                        <path d={areaPath} fill="url(#areaGradient)" />
+
+                        {/* Clean line */}
+                        <path d={linePath} fill="none" stroke="#f43f5e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+
+                        {/* Interactive dots */}
+                        {points.map((p, idx) => (
+                            <g key={idx} className="group/dot cursor-pointer">
+                                {/* Invisible larger interactive hover target */}
+                                <circle cx={p.x} cy={p.y} r="12" className="fill-transparent" />
+                                
+                                {/* Inner visual dot */}
+                                <circle 
+                                    cx={p.x} 
+                                    cy={p.y} 
+                                    r="5" 
+                                    className="fill-white stroke-rose-500 stroke-2 dark:fill-stone-900 group-hover/dot:r-7 transition-all duration-200" 
+                                />
+
+                                {/* Tooltip display on hover */}
+                                <foreignObject 
+                                    x={p.x - 70} 
+                                    y={p.y - 65} 
+                                    width="140" 
+                                    height="55" 
+                                    className="pointer-events-none opacity-0 group-hover/dot:opacity-100 transition-opacity duration-200 overflow-visible"
+                                >
+                                    <div className="bg-stone-900 text-white dark:bg-stone-800 dark:border dark:border-stone-700 text-center rounded-xl p-2 shadow-lg text-xs leading-none flex flex-col items-center justify-center gap-1">
+                                        <span className="font-semibold text-[11px] text-stone-300 uppercase">{p.label}</span>
+                                        <div className="flex items-center gap-1.5 justify-center">
+                                            <span className="font-bold text-sm text-white">{p.count} cls</span>
+                                            <span className={`text-[10px] font-bold px-1 py-0.5 rounded ${
+                                                p.percentageText.startsWith('+') ? 'bg-emerald-500/20 text-emerald-400' : 
+                                                p.percentageText.startsWith('-') ? 'bg-rose-500/20 text-rose-400' : 'bg-stone-500/20 text-stone-400'
+                                            }`}>
+                                                {p.percentageText}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </foreignObject>
+                            </g>
+                        ))}
+                    </svg>
+                </div>
+
+                {/* X Axis Labels */}
+                <div className="flex justify-between text-xs text-stone-400 dark:text-stone-500 font-medium px-[28px] mt-2 select-none">
+                    {clientGrowth.map((item, idx) => (
+                        <span key={idx}>{item.label}</span>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {
@@ -70,10 +192,6 @@ export default function DashboardPage() {
             transition: { type: 'spring', stiffness: 300, damping: 24 }
         }
     };
-
-    const maxRevenue = monthlyRevenue && monthlyRevenue.length > 0 
-        ? Math.max(...monthlyRevenue.map(m => m.amount)) 
-        : 1;
 
     const totalPlanDistribution = planDistribution?.reduce((acc, curr) => acc + curr.count, 0) || 0;
     const planDistributionBars = planDistribution?.map(plan => {
@@ -210,36 +328,13 @@ export default function DashboardPage() {
                 </motion.div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Monthly Revenue Chart (CSS based) */}
+                    {/* Client Growth Chart (Bitcoin Style Line Chart) */}
                     <div className="lg:col-span-2 bg-white dark:bg-stone-900 rounded-3xl p-8 border border-stone-100 dark:border-stone-800 shadow-sm">
                         <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-lg font-bold text-stone-800 dark:text-stone-100">Receita Mensal</h2>
-                            <DollarSign className="w-5 h-5 text-stone-400" />
+                            <h2 className="text-lg font-bold text-stone-800 dark:text-stone-100">Crescimento de Clientes</h2>
+                            <Users className="w-5 h-5 text-stone-400" />
                         </div>
-                        {loadingRevenue ? (
-                            <div className="h-64 flex items-center justify-center text-stone-400">Carregando...</div>
-                        ) : monthlyRevenue && monthlyRevenue.length > 0 ? (
-                            <div className="h-64 flex items-end gap-4">
-                                {monthlyRevenue.map((item, idx) => (
-                                    <div key={idx} className="flex-1 flex flex-col items-center justify-end gap-2 group">
-                                        <div className="w-full relative flex justify-center h-full items-end">
-                                            <div 
-                                                className="w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-t-lg transition-all duration-500 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-800/50 relative overflow-hidden"
-                                                style={{ height: `${(item.amount / maxRevenue) * 100}%`, minHeight: '4px' }}
-                                            >
-                                                <div className="absolute inset-x-0 bottom-0 bg-emerald-500 dark:bg-emerald-400 opacity-20 group-hover:opacity-100 transition-opacity" style={{ height: '100%' }}></div>
-                                            </div>
-                                            <div className="absolute -top-8 bg-stone-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                                                {formatCurrency(item.amount)}
-                                            </div>
-                                        </div>
-                                        <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">{item.label}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="h-64 flex items-center justify-center text-stone-400">Sem dados de receita</div>
-                        )}
+                        {renderGrowthChart()}
                     </div>
 
                     <div className="space-y-8">

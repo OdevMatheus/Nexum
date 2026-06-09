@@ -51,3 +51,10 @@ export interface MrrContributor {
     dueDate: string;
     amount: number; // in cents
 }
+
+export interface ClientGrowth {
+    year: number;
+    month: number;
+    label: string;
+    count: number;
+}

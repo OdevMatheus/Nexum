@@ -70,3 +70,13 @@ export const useMrrContributors = () => {
         }
     });
 };
+
+export const useClientGrowth = () => {
+    return useQuery({
+        queryKey: ['metrics', 'client-growth'],
+        queryFn: metricsService.getClientGrowth,
+        meta: {
+            errorMessage: 'Erro ao carregar o crescimento de clientes'
+        }
+    });
+};
