@@ -133,7 +133,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             LocalDate regDate = LocalDate.now().minusMonths(monthsAgo).minusDays(i % 28);
             Instant createdAt = regDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
             
-            Client client = clientRepository.save(Client.builder()
+            Client client = clientRepository.saveAndFlush(Client.builder()
                     .owner(testUser)
                     .name(name)
                     .email(name.toLowerCase().replace(" ", "") + "@academia.com")

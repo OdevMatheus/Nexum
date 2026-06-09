@@ -20,7 +20,7 @@ public interface ClientRepository extends JpaRepository<Client, UUID> {
 
     Optional<Client> findByIdAndActiveTrueAndOwnerId(UUID id, UUID ownerId);
 
-    @Modifying
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query(value = "UPDATE clients SET created_at = :createdAt WHERE id = :id", nativeQuery = true)
     void updateCreatedAt(@Param("id") UUID id, @Param("createdAt") Instant createdAt);
