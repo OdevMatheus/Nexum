@@ -7,6 +7,7 @@ import type { CreateClientRequest } from '../../types/client';
 import { getErrorMessage } from '../../services/authService';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { countries } from '../../Utils/phone';
 
 export default function ClientsPage() {
     useDocumentTitle('Clientes');
@@ -15,16 +16,24 @@ export default function ClientsPage() {
     const [search, setSearch] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState<CreateClientRequest>({ name: '', email: '', phone: '', document: '' });
+    const [selectedCountry, setSelectedCountry] = useState('+55');
 
     const { data, isLoading } = useClients(page, 10, search || undefined);
     const { mutate: create, isPending: creating, error: createError } = useCreateClient();
     const { mutate: deactivate } = useDeactivateClient();
 
     const handleCreate = () => {
-        create(form, {
+        const cleanNumber = (form.phone || '').replace(/\D/g, '');
+        const fullPhone = cleanNumber ? `${selectedCountry}${cleanNumber}` : '';
+        
+        create({
+            ...form,
+            phone: fullPhone
+        }, {
             onSuccess: () => {
                 setShowForm(false);
                 setForm({ name: '', email: '', phone: '', document: '' });
+                setSelectedCountry('+55');
             }
         });
     };
@@ -83,13 +92,26 @@ export default function ClientsPage() {
                             </div>
                             <div>
                                 <label className="block text-stone-600 dark:text-stone-400 text-xs font-medium mb-1.5 transition-colors">Telefone</label>
-                                <input
-                                    type="text"
-                                    value={form.phone}
-                                    onChange={e => setForm({ ...form, phone: e.target.value })}
-                                    placeholder="(00) 00000-0000"
-                                    className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all"
-                                />
+                                <div className="flex gap-2">
+                                    <select
+                                        value={selectedCountry}
+                                        onChange={e => setSelectedCountry(e.target.value)}
+                                        className="bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all max-w-[110px]"
+                                    >
+                                        {countries.map(country => (
+                                            <option key={country.code} value={country.code}>
+                                                {country.flag} {country.code}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        type="text"
+                                        value={form.phone}
+                                        onChange={e => setForm({ ...form, phone: e.target.value })}
+                                        placeholder="(00) 00000-0000"
+                                        className="flex-1 bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-stone-600 dark:text-stone-400 text-xs font-medium mb-1.5 transition-colors">Documento (CPF/CNPJ)</label>

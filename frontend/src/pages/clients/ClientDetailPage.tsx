@@ -9,6 +9,7 @@ import type { UpdateClientRequest } from '../../types/client';
 import { getErrorMessage } from '../../services/authService';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { countries, parsePhone } from '../../Utils/phone';
 
 export default function ClientDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -30,6 +31,7 @@ export default function ClientDetailPage() {
     const [editing, setEditing] = useState(false);
     const [activeTab, setActiveTab] = useState<'details' | 'subscriptions'>('details');
     const [showSubForm, setShowSubForm] = useState(false);
+    const [selectedCountry, setSelectedCountry] = useState('+55');
     
     // Sub form state
     const [selectedPlanId, setSelectedPlanId] = useState<string>('');
@@ -40,7 +42,7 @@ export default function ClientDetailPage() {
         : {
             name: client?.name ?? '',
             email: client?.email ?? '',
-            phone: client?.phone ?? '',
+            phone: client?.phone ? parsePhone(client.phone).number : '',
             document: client?.document ?? '',
         };
 
@@ -184,12 +186,25 @@ export default function ClientDetailPage() {
                                             </div>
                                             <div>
                                                 <label className="block text-stone-600 dark:text-stone-400 text-xs font-medium mb-1.5 transition-colors">Telefone</label>
-                                                <input
-                                                    type="text"
-                                                    value={form.phone ?? ''}
-                                                    onChange={e => updateForm({ ...form, phone: e.target.value })}
-                                                    className="w-full bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all"
-                                                />
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        value={selectedCountry}
+                                                        onChange={e => setSelectedCountry(e.target.value)}
+                                                        className="bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all max-w-[110px]"
+                                                    >
+                                                        {countries.map(country => (
+                                                            <option key={country.code} value={country.code}>
+                                                                {country.flag} {country.code}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        value={form.phone ?? ''}
+                                                        onChange={e => updateForm({ ...form, phone: e.target.value })}
+                                                        className="flex-1 bg-[#FDFBF7] dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-300 dark:focus:border-rose-500/50 transition-all"
+                                                    />
+                                                </div>
                                             </div>
                                             <div>
                                                 <label className="block text-stone-600 dark:text-stone-400 text-xs font-medium mb-1.5 transition-colors">Documento</label>
@@ -204,12 +219,19 @@ export default function ClientDetailPage() {
                                         <div className="pt-4 flex justify-end">
                                             <button
                                                 type="button"
-                                                onClick={() => update(form, {
-                                                    onSuccess: () => {
-                                                        setDraft(null);
-                                                        setEditing(false);
-                                                    },
-                                                })}
+                                                onClick={() => {
+                                                    const cleanNumber = (form.phone || '').replace(/\D/g, '');
+                                                    const fullPhone = cleanNumber ? `${selectedCountry}${cleanNumber}` : '';
+                                                    update({
+                                                        ...form,
+                                                        phone: fullPhone
+                                                    }, {
+                                                        onSuccess: () => {
+                                                            setDraft(null);
+                                                            setEditing(false);
+                                                        },
+                                                    });
+                                                }}
                                                 disabled={updating}
                                                 className="bg-stone-900 hover:bg-stone-800 dark:bg-rose-500 dark:hover:bg-rose-600 disabled:opacity-50 text-white text-sm font-medium px-6 py-2.5 rounded-xl transition-colors flex items-center gap-2"
                                             >
