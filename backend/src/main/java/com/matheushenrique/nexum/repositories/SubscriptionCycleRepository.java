@@ -1,5 +1,6 @@
 package com.matheushenrique.nexum.repositories;
 
+import com.matheushenrique.nexum.dtos.response.MrrDistributionResponse;
 import com.matheushenrique.nexum.entities.SubscriptionCycle;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,41 @@ public interface SubscriptionCycleRepository extends JpaRepository<SubscriptionC
     Long sumMrrByOwnerAndMonth(@Param("ownerId") UUID ownerId,
                                @Param("year") int year,
                                @Param("month") int month);
+
+    @Query("""
+    SELECT new com.matheushenrique.nexum.dtos.response.MrrDistributionResponse(p.id, p.name, COALESCE(SUM(c.amountCents), 0))
+    FROM SubscriptionCycle c
+    JOIN c.subscription s
+    JOIN s.plan p
+    WHERE s.owner.id = :ownerId
+      AND c.status = 'PENDING'
+      AND YEAR(c.dueDate) = :year
+      AND MONTH(c.dueDate) = :month
+    GROUP BY p.id, p.name
+    ORDER BY SUM(c.amountCents) DESC
+    """)
+    List<MrrDistributionResponse> sumMrrByPlan(
+            @Param("ownerId") UUID ownerId,
+            @Param("year") int year,
+            @Param("month") int month
+    );
+
+    @Query("""
+    SELECT c FROM SubscriptionCycle c
+    JOIN FETCH c.subscription s
+    JOIN FETCH s.client cl
+    JOIN FETCH s.plan p
+    WHERE s.owner.id = :ownerId
+      AND c.status = 'PENDING'
+      AND YEAR(c.dueDate) = :year
+      AND MONTH(c.dueDate) = :month
+    ORDER BY c.dueDate ASC
+    """)
+    List<SubscriptionCycle> findPendingCyclesByMonth(
+            @Param("ownerId") UUID ownerId,
+            @Param("year") int year,
+            @Param("month") int month
+    );
 
     @Query("""
     SELECT YEAR(c.dueDate), MONTH(c.dueDate), COALESCE(SUM(c.amountCents), 0)

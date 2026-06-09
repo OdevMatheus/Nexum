@@ -7,6 +7,7 @@ import com.matheushenrique.nexum.services.MetricsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MetricsServiceImpl implements MetricsService {
 
     private static final int UPCOMING_DAYS     = 7;
@@ -83,5 +85,28 @@ public class MetricsServiceImpl implements MetricsService {
     @Override
     public List<PlanDistributionResponse> getActiveByPlan(UUID ownerId) {
         return subscriptionRepository.countActiveByPlan(ownerId);
+    }
+
+    @Override
+    public List<MrrDistributionResponse> getMrrDistribution(UUID ownerId) {
+        LocalDate today = LocalDate.now();
+        return cycleRepository.sumMrrByPlan(ownerId, today.getYear(), today.getMonthValue());
+    }
+
+    @Override
+    public List<MrrContributorResponse> getMrrContributors(UUID ownerId) {
+        LocalDate today = LocalDate.now();
+        return cycleRepository.findPendingCyclesByMonth(ownerId, today.getYear(), today.getMonthValue())
+                .stream()
+                .map(cycle -> new MrrContributorResponse(
+                        cycle.getSubscription().getId(),
+                        cycle.getSubscription().getClient().getName(),
+                        cycle.getSubscription().getClient().getId(),
+                        cycle.getSubscription().getPlan().getName(),
+                        cycle.getSubscription().getPlan().getId(),
+                        cycle.getDueDate(),
+                        cycle.getAmountCents()
+                ))
+                .toList();
     }
 }

@@ -10,4 +10,6 @@ public interface MetricsService {
     List<UpcomingSubscriptionResponse> getUpcoming(UUID ownerId);
     List<RecentPaymentResponse> getRecentPayments(UUID ownerId);
     List<PlanDistributionResponse> getActiveByPlan(UUID ownerId);
+    List<MrrDistributionResponse> getMrrDistribution(UUID ownerId);
+    List<MrrContributorResponse> getMrrContributors(UUID ownerId);
 }
