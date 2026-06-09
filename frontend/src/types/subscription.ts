@@ -6,6 +6,7 @@ export interface Subscription {
     clientId: string;
     clientName: string;
     clientEmail: string;
+    clientPhone?: string;
     planId: string;
     planName: string;
     planAmountFormatted: string;

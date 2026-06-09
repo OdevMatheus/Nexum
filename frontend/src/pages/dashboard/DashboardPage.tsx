@@ -3,17 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useMetricsSummary, useRecentPayments, useUpcomingSubscriptions, useMonthlyRevenue, useActiveByPlan, useMrrByPlan, useMrrContributors } from '../../hooks/useMetrics';
-import { useSubscriptions } from '../../hooks/useSubscriptions';
+import { useSubscriptions, usePaySubscription } from '../../hooks/useSubscriptions';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { Users, AlertCircle, Clock, DollarSign, TrendingUp, Calendar, CheckCircle, XCircle, X, ArrowUpRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { Users, AlertCircle, Clock, DollarSign, TrendingUp, Calendar, CheckCircle, XCircle, X, ArrowUpRight, MessageCircle, Check } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function DashboardPage() {
     useDocumentTitle('Dashboard');
     const navigate = useNavigate();
 
-    const [activeModal, setActiveModal] = useState<'ACTIVE_SUBS' | 'MRR' | null>(null);
+    const [activeModal, setActiveModal] = useState<'ACTIVE_SUBS' | 'MRR' | 'OVERDUE' | 'UPCOMING' | null>(null);
 
     const { data: summary, isLoading: loadingSummary } = useMetricsSummary();
     const { data: recentPayments, isLoading: loadingPayments } = useRecentPayments();
@@ -23,6 +23,29 @@ export default function DashboardPage() {
     const { data: activeSubsData, isLoading: loadingActiveSubs } = useSubscriptions({ status: 'ACTIVE', size: 50 });
     const { data: mrrDistribution, isLoading: loadingMrrDist } = useMrrByPlan();
     const { data: mrrContributors, isLoading: loadingMrrContributors } = useMrrContributors();
+
+    const { mutate: paySubscription } = usePaySubscription();
+    const { data: overdueSubsData, isLoading: loadingOverdueSubs } = useSubscriptions({ status: 'OVERDUE', size: 50 });
+    
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const next7DaysStr = format(addDays(new Date(), 7), 'yyyy-MM-dd');
+    const { data: upcomingDetailedData, isLoading: loadingUpcomingDetailed } = useSubscriptions({
+        nextDueDateFrom: todayStr,
+        nextDueDateTo: next7DaysStr,
+        size: 50
+    });
+
+    const getWhatsAppLink = (phone: string | undefined, clientName: string, planName: string, date: string, type: 'OVERDUE' | 'UPCOMING') => {
+        if (!phone) return '#';
+        const cleanPhone = phone.replace(/\D/g, '');
+        const formattedPhone = cleanPhone.startsWith('55') || cleanPhone.length > 11 ? cleanPhone : `55${cleanPhone}`;
+        
+        const message = type === 'OVERDUE'
+            ? `Olá, ${clientName}! Tudo bem? Passando para lembrar que a fatura da sua assinatura do plano ${planName} está pendente desde ${date}. Se precisar de ajuda para regularizar, estamos à disposição!`
+            : `Olá, ${clientName}! Tudo bem? Passando para avisar que a fatura da sua assinatura do plano ${planName} vencerá em ${date}. Qualquer dúvida, estamos por aqui!`;
+            
+        return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+    };
 
     const formatCurrency = (cents: number) => {
         return new Intl.NumberFormat('pt-BR', {
@@ -149,7 +172,11 @@ export default function DashboardPage() {
                         </div>
                     </motion.div>
 
-                    <motion.div variants={itemVariants} className="bg-white dark:bg-stone-900 rounded-2xl p-6 border border-stone-100 dark:border-stone-800 shadow-sm flex flex-col justify-between">
+                    <motion.div 
+                        variants={itemVariants} 
+                        className="bg-white dark:bg-stone-900 rounded-2xl p-6 border border-stone-100 dark:border-stone-800 shadow-sm flex flex-col justify-between cursor-pointer hover:border-red-500/50 transition-colors"
+                        onClick={() => setActiveModal('OVERDUE')}
+                    >
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-stone-500 dark:text-stone-400 text-sm font-medium">Faturas Atrasadas</p>
@@ -163,7 +190,11 @@ export default function DashboardPage() {
                         </div>
                     </motion.div>
 
-                    <motion.div variants={itemVariants} className="bg-white dark:bg-stone-900 rounded-2xl p-6 border border-stone-100 dark:border-stone-800 shadow-sm flex flex-col justify-between">
+                    <motion.div 
+                        variants={itemVariants} 
+                        className="bg-white dark:bg-stone-900 rounded-2xl p-6 border border-stone-100 dark:border-stone-800 shadow-sm flex flex-col justify-between cursor-pointer hover:border-amber-500/50 transition-colors"
+                        onClick={() => setActiveModal('UPCOMING')}
+                    >
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-stone-500 dark:text-stone-400 text-sm font-medium">A Vencer (7 dias)</p>
@@ -461,6 +492,202 @@ export default function DashboardPage() {
                                         <p className="text-sm text-stone-500">Nenhuma fatura contribuinte encontrada.</p>
                                     )}
                                 </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal de Faturas Atrasadas */}
+            <AnimatePresence>
+                {activeModal === 'OVERDUE' && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden border border-stone-200 dark:border-stone-800 flex flex-col max-h-[90vh]"
+                        >
+                            <div className="flex items-center justify-between p-6 border-b border-stone-100 dark:border-stone-800">
+                                <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">Detalhamento: Faturas Atrasadas</h2>
+                                <button 
+                                    onClick={() => setActiveModal(null)}
+                                    className="p-2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <div className="p-6 overflow-y-auto flex-1">
+                                {loadingOverdueSubs ? (
+                                    <div className="flex justify-center py-8">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+                                    </div>
+                                ) : overdueSubsData?.content && overdueSubsData.content.length > 0 ? (
+                                    <div className="border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden">
+                                        <table className="w-full text-left text-sm">
+                                            <thead className="bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400">
+                                                <tr>
+                                                    <th className="px-4 py-3 font-medium">Cliente</th>
+                                                    <th className="px-4 py-3 font-medium">Plano</th>
+                                                    <th className="px-4 py-3 font-medium">Vencido Desde</th>
+                                                    <th className="px-4 py-3 font-medium text-right">Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
+                                                {overdueSubsData.content.map(sub => (
+                                                    <tr key={sub.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+                                                        <td className="px-4 py-3 font-medium text-stone-800 dark:text-stone-200">
+                                                            <span 
+                                                                onClick={() => { setActiveModal(null); navigate('/clients/' + sub.clientId); }} 
+                                                                className="cursor-pointer text-rose-600 hover:text-rose-500 dark:text-rose-400 dark:hover:text-rose-300 hover:underline flex items-center gap-1 w-fit"
+                                                            >
+                                                                {sub.clientName} <ArrowUpRight className="w-3 h-3"/>
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
+                                                            <span 
+                                                                onClick={() => { setActiveModal(null); navigate('/plans/' + sub.planId); }} 
+                                                                className="cursor-pointer text-rose-600 hover:text-rose-500 dark:text-rose-400 dark:hover:text-rose-300 hover:underline flex items-center gap-1 w-fit"
+                                                            >
+                                                                {sub.planName} <ArrowUpRight className="w-3 h-3"/>
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-red-600 dark:text-red-400 font-medium">
+                                                            {format(new Date(sub.nextDueDate + 'T00:00:00'), "dd/MM/yyyy")}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => paySubscription(sub.id)}
+                                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 text-xs font-semibold rounded-lg transition-colors"
+                                                                    title="Marcar como Paga"
+                                                                >
+                                                                    <Check className="w-3.5 h-3.5" />
+                                                                    <span>Pagar</span>
+                                                                </button>
+                                                                {sub.clientPhone ? (
+                                                                    <a
+                                                                        href={getWhatsAppLink(sub.clientPhone, sub.clientName, sub.planName, format(new Date(sub.nextDueDate + 'T00:00:00'), 'dd/MM/yyyy'), 'OVERDUE')}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-400 text-xs font-semibold rounded-lg transition-colors"
+                                                                        title="Enviar mensagem de cobrança via WhatsApp"
+                                                                    >
+                                                                        <MessageCircle className="w-3.5 h-3.5" />
+                                                                        <span>WhatsApp</span>
+                                                                    </a>
+                                                                ) : (
+                                                                    <span className="text-xs text-stone-400 dark:text-stone-600 italic">Sem telefone</span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-stone-500 text-center py-4">Nenhuma fatura atrasada encontrada.</p>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal de Faturas a Vencer */}
+            <AnimatePresence>
+                {activeModal === 'UPCOMING' && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden border border-stone-200 dark:border-stone-800 flex flex-col max-h-[90vh]"
+                        >
+                            <div className="flex items-center justify-between p-6 border-b border-stone-100 dark:border-stone-800">
+                                <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">Detalhamento: Faturas a Vencer (7 dias)</h2>
+                                <button 
+                                    onClick={() => setActiveModal(null)}
+                                    className="p-2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            
+                            <div className="p-6 overflow-y-auto flex-1">
+                                {loadingUpcomingDetailed ? (
+                                    <div className="flex justify-center py-8">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+                                    </div>
+                                ) : upcomingDetailedData?.content && upcomingDetailedData.content.length > 0 ? (
+                                    <div className="border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden">
+                                        <table className="w-full text-left text-sm">
+                                            <thead className="bg-stone-50 dark:bg-stone-800/50 text-stone-500 dark:text-stone-400">
+                                                <tr>
+                                                    <th className="px-4 py-3 font-medium">Cliente</th>
+                                                    <th className="px-4 py-3 font-medium">Plano</th>
+                                                    <th className="px-4 py-3 font-medium">Vence Em</th>
+                                                    <th className="px-4 py-3 font-medium text-right">Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
+                                                {upcomingDetailedData.content.map(sub => (
+                                                    <tr key={sub.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+                                                        <td className="px-4 py-3 font-medium text-stone-800 dark:text-stone-200">
+                                                            <span 
+                                                                onClick={() => { setActiveModal(null); navigate('/clients/' + sub.clientId); }} 
+                                                                className="cursor-pointer text-rose-600 hover:text-rose-500 dark:text-rose-400 dark:hover:text-rose-300 hover:underline flex items-center gap-1 w-fit"
+                                                            >
+                                                                {sub.clientName} <ArrowUpRight className="w-3 h-3"/>
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
+                                                            <span 
+                                                                onClick={() => { setActiveModal(null); navigate('/plans/' + sub.planId); }} 
+                                                                className="cursor-pointer text-rose-600 hover:text-rose-500 dark:text-rose-400 dark:hover:text-rose-300 hover:underline flex items-center gap-1 w-fit"
+                                                            >
+                                                                {sub.planName} <ArrowUpRight className="w-3 h-3"/>
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-amber-600 dark:text-amber-400 font-medium">
+                                                            {format(new Date(sub.nextDueDate + 'T00:00:00'), "dd/MM/yyyy")}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => paySubscription(sub.id)}
+                                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30 dark:text-emerald-400 text-xs font-semibold rounded-lg transition-colors"
+                                                                    title="Marcar como Paga"
+                                                                >
+                                                                    <Check className="w-3.5 h-3.5" />
+                                                                    <span>Pagar</span>
+                                                                </button>
+                                                                {sub.clientPhone ? (
+                                                                    <a
+                                                                        href={getWhatsAppLink(sub.clientPhone, sub.clientName, sub.planName, format(new Date(sub.nextDueDate + 'T00:00:00'), 'dd/MM/yyyy'), 'UPCOMING')}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-400 text-xs font-semibold rounded-lg transition-colors"
+                                                                        title="Enviar lembrete de vencimento via WhatsApp"
+                                                                    >
+                                                                        <MessageCircle className="w-3.5 h-3.5" />
+                                                                        <span>WhatsApp</span>
+                                                                    </a>
+                                                                ) : (
+                                                                    <span className="text-xs text-stone-400 dark:text-stone-600 italic">Sem telefone</span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-stone-500 text-center py-4">Nenhuma fatura a vencer encontrada para os próximos 7 dias.</p>
+                                )}
                             </div>
                         </motion.div>
                     </div>
