@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -73,7 +74,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private void seedData() {
         // 1. Create Test User
         User testUser = User.builder()
-                .name("Administrador de Testes")
+                .name("Carlos - Academia FitLife")
                 .email("teste@teste")
                 .passwordHash(passwordEncoder.encode("teste123"))
                 .emailVerified(true)
@@ -81,71 +82,99 @@ public class DatabaseSeeder implements CommandLineRunner {
         userRepository.save(testUser);
         log.info("User 'teste@teste' created.");
 
-        // 2. Create Plans (Various Recurrences and Trial Scenarios)
+        // 2. Create Plans (Gym themed)
         Plan planBasic = planRepository.save(Plan.builder()
-                .owner(testUser).name("Basic Mensal").description("Ideal para pequenos negócios")
-                .amountCents(4990).recurrence(Plan.Recurrence.MONTHLY).trialDays(7)
-                .active(true).features(json(List.of("1 Usuário", "Suporte Email", "Dashboard Básico")))
+                .owner(testUser).name("Gym Mensal").description("Acesso livre à musculação")
+                .amountCents(8990).recurrence(Plan.Recurrence.MONTHLY).trialDays(0)
+                .active(true).features(json(List.of("Acesso Musculação", "Armário Individual", "Suporte do Instrutor")))
                 .build());
 
         Plan planPro = planRepository.save(Plan.builder()
-                .owner(testUser).name("Pro Semestral").description("O mais escolhido pelas empresas")
-                .amountCents(24900).recurrence(Plan.Recurrence.SEMIANNUAL).trialDays(0)
-                .active(true).features(json(List.of("5 Usuários", "Suporte Prioritário 24/7", "Relatórios Avançados", "API Access")))
+                .owner(testUser).name("Gym Trimestral").description("O plano queridinho da galera")
+                .amountCents(23990).recurrence(Plan.Recurrence.QUARTERLY).trialDays(0)
+                .active(true).features(json(List.of("Acesso Musculação", "Aulas Coletivas", "Crossfit", "Acesso 24h", "Avaliação Física Trimestral")))
                 .build());
 
         Plan planEnterprise = planRepository.save(Plan.builder()
-                .owner(testUser).name("Enterprise Anual").description("Solução definitiva")
-                .amountCents(99900).recurrence(Plan.Recurrence.ANNUAL).trialDays(30)
-                .active(true).features(json(List.of("Ilimitado", "Gerente de Contas", "White Label")))
+                .owner(testUser).name("Gym VIP Anual").description("Experiência premium completa")
+                .amountCents(79990).recurrence(Plan.Recurrence.ANNUAL).trialDays(7)
+                .active(true).features(json(List.of("Tudo do Pro", "Personal Trainer 1x/semana", "Acesso à Piscina", "Avaliação Nutricional", "Espaço Kids")))
                 .build());
 
         Plan planArchived = planRepository.save(Plan.builder()
-                .owner(testUser).name("Plano Antigo (Arquivado)")
-                .amountCents(1990).recurrence(Plan.Recurrence.MONTHLY).trialDays(0)
+                .owner(testUser).name("Gym Plano Antigo")
+                .amountCents(5990).recurrence(Plan.Recurrence.MONTHLY).trialDays(0)
                 .active(false).build());
 
-        // 3. Create Bulk Clients
+        // Real Gym Members names (50 total)
+        List<String> realNames = List.of(
+            "Ana Beatriz Silva", "Carlos Eduardo Santos", "Mariana Costa Oliveira", "Lucas Pereira Gomes",
+            "Juliana Ramos Souza", "Rodrigo de Almeida", "Patrícia Fernandes", "Felipe Augusto Melo",
+            "Camila Vitória Barbosa", "Bruno Castro Lima", "Amanda Letícia Rocha", "Gabriel Henrique Mendes",
+            "Larissa Antunes Xavier", "Thiago Henrique Silva", "Isabela Cristina Carvalho", "Matheus de Souza Lima",
+            "Fernanda Borges Cruz", "Vinícius Garcia Pinto", "Letícia Maria Rezende", "Daniel Rodrigues Costa",
+            "Gustavo Oliveira Silva", "Sofia Albuquerque", "Leonardo Ramos Almeida", "Carolina de Souza",
+            "Marcelo Vieira Lopes", "Renata Vasconcelos", "Diego Roberto Pinto", "Bárbara Cruz Duarte",
+            "Arthur de Melo Santos", "Tatiane Moreira", "Samuel da Silva Gomes", "Aline Barbosa de Oliveira",
+            "Victor Rodrigues Cruz", "Cláudia Regina de Souza", "Pedro Henrique Santos", "Vanessa Cristina Lima",
+            "Danilo Mendes Ramos", "Jéssica de Paula Costa", "Henrique Augusto Ramos", "Letícia Fernanda Duarte",
+            "Guilherme Silva Souza", "Paula Roberta Gomes", "Igor Vasconcelos Ramos", "Gisele Ramos Pinto",
+            "Alexandre de Oliveira", "Karina Barbosa Santos", "Fábio Augusto Ramos", "Priscila Maria Rezende",
+            "Douglas de Melo Pinto", "Luana Letícia Costa"
+        );
+
+        // 3. Create Bulk Clients with growth over 2.4 years (29 months)
         for (int i = 1; i <= 50; i++) {
-            boolean active = i % 5 != 0; // Every 5th client is inactive
-            clientRepository.save(Client.builder()
+            boolean active = i % 8 != 0; // Every 8th client is inactive
+            String name = realNames.get(i - 1);
+            
+            // Distribute registration dates over 29 months (2.4 years)
+            int monthsAgo = (50 - i) * 29 / 50;
+            LocalDate regDate = LocalDate.now().minusMonths(monthsAgo).minusDays(i % 28);
+            Instant createdAt = regDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            
+            Client client = clientRepository.save(Client.builder()
                     .owner(testUser)
-                    .name("Cliente Nexum " + i)
-                    .email("cliente" + i + "@empresa.com")
-                    .phone(String.format("119%04d%04d", i, i))
+                    .name(name)
+                    .email(name.toLowerCase().replace(" ", "") + "@academia.com")
+                    .phone(String.format("+55119%04d%04d", i, i))
                     .document(String.format("%03d.111.222-%02d", i, i))
                     .active(active)
                     .build());
+            
+            // Persist historical created_at date to show accurate growth chart
+            clientRepository.updateCreatedAt(client.getId(), createdAt);
         }
         
         List<Client> allClients = clientRepository.findAll();
         LocalDate today = LocalDate.now();
 
         // 4. Create Subscriptions & Cycles
-        // Distribute subscriptions among the first 35 clients
-        for (int i = 0; i < 35; i++) {
+        // Distribute subscriptions among the first 45 clients
+        for (int i = 0; i < 45; i++) {
             Client c = allClients.get(i);
-            Plan p = (i % 3 == 0) ? planPro : (i % 2 == 0) ? planEnterprise : planBasic;
+            Plan p = (i % 3 == 0) ? planPro : (i % 5 == 0) ? planEnterprise : planBasic;
             
             Subscription.Status status;
             LocalDate startDate;
             LocalDate nextDueDate;
             
-            if (i < 5) { // TRIAL
+            // Align subscription startDate with client creation date
+            int monthsAgo = (50 - (i + 1)) * 29 / 50;
+            startDate = today.minusMonths(monthsAgo).minusDays(i % 20);
+            
+            if (i < 5) { // TRIAL (Only for planEnterprise because planBasic/planPro has trialDays=0)
                 status = Subscription.Status.TRIAL;
                 startDate = today.minusDays(2);
                 nextDueDate = today.plusDays(p.getTrialDays() - 2);
-            } else if (i < 25) { // ACTIVE
+            } else if (i < 35) { // ACTIVE
                 status = Subscription.Status.ACTIVE;
-                startDate = today.minusMonths(6 + (i % 6));
                 nextDueDate = today.plusDays(i % 15 + 1);
-            } else if (i < 30) { // OVERDUE
+            } else if (i < 41) { // OVERDUE
                 status = Subscription.Status.OVERDUE;
-                startDate = today.minusMonths(3);
                 nextDueDate = today.minusDays(i % 10 + 1);
             } else { // SUSPENDED
                 status = Subscription.Status.SUSPENDED;
-                startDate = today.minusMonths(4);
                 nextDueDate = today.minusDays(30);
             }
 
@@ -189,9 +218,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         Subscription s1 = subscriptionRepository.save(Subscription.builder().owner(testUser).client(richClient).plan(planPro).status(Subscription.Status.CANCELLED).startDate(today.minusYears(2)).nextDueDate(today.minusYears(1)).cancelledAt(Instant.now().minusSeconds(86400 * 365)).build());
         Subscription s2 = subscriptionRepository.save(Subscription.builder().owner(testUser).client(richClient).plan(planEnterprise).status(Subscription.Status.ACTIVE).startDate(today.minusMonths(2)).nextDueDate(today.plusDays(10)).build());
         
-        cycleRepository.save(SubscriptionCycle.builder().subscription(s1).amountCents(24900).dueDate(today.minusYears(2)).status(SubscriptionCycle.CycleStatus.PAID).build());
-        cycleRepository.save(SubscriptionCycle.builder().subscription(s2).amountCents(99900).dueDate(today.minusMonths(2)).status(SubscriptionCycle.CycleStatus.PAID).build());
-        cycleRepository.save(SubscriptionCycle.builder().subscription(s2).amountCents(99900).dueDate(today.plusDays(10)).status(SubscriptionCycle.CycleStatus.PENDING).build());
+        cycleRepository.save(SubscriptionCycle.builder().subscription(s1).amountCents(23990).dueDate(today.minusYears(2)).status(SubscriptionCycle.CycleStatus.PAID).build());
+        cycleRepository.save(SubscriptionCycle.builder().subscription(s2).amountCents(79990).dueDate(today.minusMonths(2)).status(SubscriptionCycle.CycleStatus.PAID).build());
+        cycleRepository.save(SubscriptionCycle.builder().subscription(s2).amountCents(79990).dueDate(today.plusDays(10)).status(SubscriptionCycle.CycleStatus.PENDING).build());
         
         log.info("Massive test data generation completed.");
     }
