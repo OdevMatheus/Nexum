@@ -235,16 +235,6 @@ Subscription.md
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Please make sure to review the [Commit Guide](./commit-guide.md) and [GEMINI.md](./GEMINI.md) for development workflows, coding standards, and branch patterns before submitting pull requests.
-
-<a href="https://github.com/OdevMatheus/nexus-monorepo/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=OdevMatheus/nexus-monorepo" />
-</a>
-
----
-
 ## 📄 License
 
 This project is proprietary and confidential.
