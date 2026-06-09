@@ -1,6 +1,6 @@
 import { useRegister } from '../../hooks/useAuth.ts'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import type { RegisterRequest } from '../../types/auth.ts'
 import { getErrorMessage } from '../../services/authService.ts'
 import { Header } from '../../components/landing/Header'
@@ -9,11 +9,19 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 export default function RegisterPage() {
     useDocumentTitle('Criar conta');
     const { mutate, isPending, isSuccess, error } = useRegister()
+    const navigate = useNavigate()
     const [form, setForm] = useState<RegisterRequest>({
         name: '',
         email: '',
         password: '',
     })
+
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('refreshToken');
+        if (token) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [navigate]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()

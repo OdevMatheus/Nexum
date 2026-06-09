@@ -24,7 +24,7 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-    const token = sessionStorage.getItem('accessToken')
+    const token = localStorage.getItem('accessToken')
     if (token) {
         config.headers.Authorization = `Bearer ${token}`
     }
@@ -51,13 +51,13 @@ api.interceptors.response.use(
                         { refreshToken }
                     )
 
-                    sessionStorage.setItem('accessToken', data.accessToken)
+                    localStorage.setItem('accessToken', data.accessToken)
                     localStorage.setItem('refreshToken', data.refreshToken)
 
                     original.headers.Authorization = `Bearer ${data.accessToken}`
                     return api(original)
                 } catch {
-                    sessionStorage.removeItem('accessToken')
+                    localStorage.removeItem('accessToken')
                     localStorage.removeItem('refreshToken')
                     window.location.href = '/login'
                 }
@@ -79,14 +79,14 @@ export const authService = {
 
     login: async (data: LoginRequest): Promise<AuthResponse> => {
         const response = await api.post<AuthResponse>('/v1/auth/login', data)
-        sessionStorage.setItem('accessToken', response.data.accessToken)
+        localStorage.setItem('accessToken', response.data.accessToken)
         localStorage.setItem('refreshToken', response.data.refreshToken)
         return response.data
     },
 
     logout: async (): Promise<MessageResponse> => {
         const response = await api.post<MessageResponse>('/v1/auth/logout')
-        sessionStorage.removeItem('accessToken')
+        localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         return response.data
     },

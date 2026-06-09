@@ -1,6 +1,6 @@
 import { useLogin } from '../../hooks/useAuth.ts'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import type { LoginRequest } from '../../types/auth.ts'
 import { getErrorMessage } from '../../services/authService.ts'
 import { Header } from '../../components/landing/Header'
@@ -9,10 +9,18 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 export default function LoginPage() {
     useDocumentTitle('Entrar na conta');
     const { mutate, isPending, error } = useLogin()
+    const navigate = useNavigate()
     const [form, setForm] = useState<LoginRequest>({
         email: '',
         password: '',
     })
+
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('refreshToken');
+        if (token) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [navigate]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()

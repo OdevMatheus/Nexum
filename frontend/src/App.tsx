@@ -12,7 +12,7 @@ import SubscriptionsPage from "./pages/subscriptions/SubscriptionsPage.tsx";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ThemeToggle } from "./components/ThemeToggle";
 
-const isAuthenticated = () => !!sessionStorage.getItem('accessToken')
+const isAuthenticated = () => !!localStorage.getItem('accessToken')
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
     return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />
