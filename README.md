@@ -174,15 +174,7 @@ backend/
 docker/
 └── docker-compose.yml
 docs/
-├── auth/
-│   ├── decisions.md
-│   └── overview.md
-└── specs/
-    ├── 2026-06-06-notifications-hybrid-design.md
-    ├── 2026-06-06-subscription-search-design.md
-    ├── 2026-06-07-dashboard-active-modal-design.md
-    ├── 2026-06-07-manual-payment-flow.md
-    └── 2026-06-08-advanced-subscription-filtering.md
+└── README.pt-BR.md
 frontend/
 ├── public/
 │   └── favicon.svg
@@ -210,7 +202,6 @@ frontend/
 └── vite.config.ts
 .gitignore
 commit-guide.md
-GEMINI.md
 README.md
 Rodar.txt
 Subscription.md
@@ -222,15 +213,7 @@ Subscription.md
 
 | Resource | Description |
 |---|---|
-| [GEMINI.md](./GEMINI.md) | Foundational mandates, coding standards, backend & frontend conventions, and architecture. |
 | [Subscription Lifecycle Design](./Subscription.md) | Technical specs and workflow of the core subscription state machine. |
-| [Auth Architecture Overview](./docs/auth/overview.md) | Comprehensive walkthrough of JWT, session handling, and access control. |
-| [Auth Architecture Decisions](./docs/auth/decisions.md) | Architectural and design decisions regarding authentication and security. |
-| [Hybrid Notification Design](./docs/specs/2026-06-06-notifications-hybrid-design.md) | Specification for the real-time and background notification hybrid system. |
-| [Subscription Search Specification](./docs/specs/2026-06-06-subscription-search-design.md) | Technical outline for full-text search and lookups on subscriptions. |
-| [Dashboard Active Modal Design](./docs/specs/2026-06-07-dashboard-active-modal-design.md) | Design specifications for dashboard overlays and modal states. |
-| [Manual Payment Flow](./docs/specs/2026-06-07-manual-payment-flow.md) | Documentation for handling payment operations manually in the state machine. |
-| [Advanced Subscription Filtering](./docs/specs/2026-06-08-advanced-subscription-filtering.md) | Technical specs for Spring Data JPA Specification dynamic filtering. |
 | [Commit Guide](./commit-guide.md) | Guidelines and standard conventions for writing clean, semantic git commits. |
 
 ---

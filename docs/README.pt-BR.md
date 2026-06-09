@@ -174,15 +174,7 @@ backend/
 docker/
 └── docker-compose.yml
 docs/
-├── auth/
-│   ├── decisions.md
-│   └── overview.md
-└── specs/
-    ├── 2026-06-06-notifications-hybrid-design.md
-    ├── 2026-06-06-subscription-search-design.md
-    ├── 2026-06-07-dashboard-active-modal-design.md
-    ├── 2026-06-07-manual-payment-flow.md
-    └── 2026-06-08-advanced-subscription-filtering.md
+└── README.pt-BR.md
 frontend/
 ├── public/
 │   └── favicon.svg
@@ -210,7 +202,6 @@ frontend/
 └── vite.config.ts
 .gitignore
 commit-guide.md
-GEMINI.md
 README.md
 Rodar.txt
 Subscription.md
@@ -222,15 +213,7 @@ Subscription.md
 
 | Recurso | Descrição |
 |---|---|
-| [GEMINI.md](../GEMINI.md) | Mandatos fundamentais, padrões de código, convenções de backend/frontend e arquitetura. |
 | [Design do Ciclo de Vida de Assinatura](../Subscription.md) | Especificações técnicas e fluxo de trabalho da máquina de estados de assinatura. |
-| [Visão Geral da Arquitetura de Autenticação](./auth/overview.md) | Passo a passo abrangente do JWT, tratamento de sessões e controle de acesso. |
-| [Decisões sobre Arquitetura de Autenticação](./auth/decisions.md) | Decisões arquiteturais e de design referentes à segurança e autenticação. |
-| [Design de Notificação Híbrida](./specs/2026-06-06-notifications-hybrid-design.md) | Especificação para o sistema híbrido de notificações em segundo plano e em tempo real. |
-| [Especificação de Busca de Assinaturas](./specs/2026-06-06-subscription-search-design.md) | Esboço técnico de busca textual completa e pesquisas sobre assinaturas. |
-| [Design do Modal Ativo no Dashboard](./specs/2026-06-07-dashboard-active-modal-design.md) | Especificações de design para modais de sobreposição no painel. |
-| [Fluxo de Pagamento Manual](./specs/2026-06-07-manual-payment-flow.md) | Documentação de tratamento de transações de faturamento de forma manual na máquina de estados. |
-| [Filtragem Avançada de Assinaturas](./specs/2026-06-08-advanced-subscription-filtering.md) | Especificações técnicas de filtros dinâmicos com Spring Data JPA Specifications. |
 | [Guia de Commit](../commit-guide.md) | Diretrizes e padrões para redigir mensagens de commit limpas e semânticas. |
 
 ---
