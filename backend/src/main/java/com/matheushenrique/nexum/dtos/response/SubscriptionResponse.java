@@ -16,9 +16,11 @@ public record SubscriptionResponse(
         String clientName,
         @Schema(description = "E-mail do cliente", example = "cliente@exemplo.com")
         String clientEmail,
+        @Schema(description = "Telefone do cliente", example = "5511999999999")
+        String clientPhone,
         @Schema(description = "ID do plano assinado", example = "c3d4e5f6-a7b8-9012-3456-78901abcdef2")
         UUID planId,
-        @Schema(description = "Nome do plano", example = "Plano Premium")
+        @Schema(description = "Nome do plano", example = "Plano Básico")
         String planName,
         @Schema(description = "Valor formatado do plano", example = "R$ 49,90")
         String planAmountFormatted,
@@ -45,6 +47,7 @@ public record SubscriptionResponse(
                 s.getClient().getId(),
                 s.getClient().getName(),
                 s.getClient().getEmail(),
+                s.getClient().getPhone(),
                 s.getPlan().getId(),
                 s.getPlan().getName(),
                 formatAmount(s.getPlan().getAmountCents()),

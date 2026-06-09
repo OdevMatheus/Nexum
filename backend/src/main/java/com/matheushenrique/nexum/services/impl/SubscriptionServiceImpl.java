@@ -215,7 +215,7 @@ public class SubscriptionServiceImpl {
             subscription.setStatus(Subscription.Status.ACTIVE);
         }
 
-        LocalDate newNextDueDate = calculateNextDueDate(subscription.getNextDueDate(), subscription.getPlan());
+        LocalDate newNextDueDate = calculateNextDueDate(LocalDate.now(), subscription.getPlan());
         subscription.setNextDueDate(newNextDueDate);
         subscriptionRepository.save(subscription);
 
