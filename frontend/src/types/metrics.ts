@@ -35,3 +35,19 @@ export interface PlanDistribution {
     planName: string;
     count: number;
 }
+
+export interface MrrDistribution {
+    planId: string;
+    planName: string;
+    amount: number; // in cents
+}
+
+export interface MrrContributor {
+    subscriptionId: string;
+    clientName: string;
+    clientId: string;
+    planName: string;
+    planId: string;
+    dueDate: string;
+    amount: number; // in cents
+}

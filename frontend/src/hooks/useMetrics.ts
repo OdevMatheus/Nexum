@@ -50,3 +50,23 @@ export const useRecentPayments = () => {
         }
     });
 };
+
+export const useMrrByPlan = () => {
+    return useQuery({
+        queryKey: ['metrics', 'mrr-by-plan'],
+        queryFn: metricsService.getMrrByPlan,
+        meta: {
+            errorMessage: 'Erro ao carregar a distribuição de MRR por plano'
+        }
+    });
+};
+
+export const useMrrContributors = () => {
+    return useQuery({
+        queryKey: ['metrics', 'mrr-contributors'],
+        queryFn: metricsService.getMrrContributors,
+        meta: {
+            errorMessage: 'Erro ao carregar os contribuintes do MRR'
+        }
+    });
+};

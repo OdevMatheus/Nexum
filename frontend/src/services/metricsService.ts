@@ -1,5 +1,5 @@
 import api from './authService';
-import type { MetricsSummary, MonthlyRevenue, RecentPayment, UpcomingSubscription, PlanDistribution } from '../types/metrics';
+import type { MetricsSummary, MonthlyRevenue, RecentPayment, UpcomingSubscription, PlanDistribution, MrrDistribution, MrrContributor } from '../types/metrics';
 
 export const metricsService = {
     getSummary: async (): Promise<MetricsSummary> => {
@@ -20,6 +20,14 @@ export const metricsService = {
     },
     getRecentPayments: async (): Promise<RecentPayment[]> => {
         const response = await api.get<RecentPayment[]>('/v1/metrics/recent-payments');
+        return response.data;
+    },
+    getMrrByPlan: async (): Promise<MrrDistribution[]> => {
+        const response = await api.get<MrrDistribution[]>('/v1/metrics/mrr-by-plan');
+        return response.data;
+    },
+    getMrrContributors: async (): Promise<MrrContributor[]> => {
+        const response = await api.get<MrrContributor[]>('/v1/metrics/mrr-contributors');
         return response.data;
     }
 };
