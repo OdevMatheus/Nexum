@@ -22,15 +22,18 @@
 
 ## What is this?
 
-**Nexum** is an enterprise-grade, high-performance monorepo application designed to manage complex SaaS subscription lifecycles, billing, and customer data. It features a robust event-driven backend and a highly responsive, animated frontend.
+**Nexum** is an enterprise-grade, high-performance monorepo application designed to manage complex SaaS subscription lifecycles, billing, and customer data. Featuring a robust, event-driven backend and a highly responsive, animated frontend, it offers comprehensive tools for modern subscription management and rich customer interaction.
+
+---
 
 ## ✨ Key Features
 
-- **Subscription State Machine:** Automated and manual control over complex subscription lifecycles (Trial, Active, Overdue, Suspended, Cancelled).
-- **Interactive Dashboard:** Rich, animated analytics (`framer-motion`), providing insights into Active Subscriptions by Plan, Monthly Recurring Revenue (MRR), and Overdue/Upcoming payments.
-- **Advanced Filtering Engine:** Dynamic search and filtering for subscriptions leveraging Spring Data JPA Specifications.
-- **Event-Driven Architecture:** Apache Kafka integration for auditing, notifications, and decoupling business logic.
-- **Secure Authentication:** JWT-based authentication with Refresh Token Rotation and Redis-backed session management.
+- **Subscription State Machine:** Full manual and automated lifecycle control (Trial, Active, Overdue, Suspended, Cancelled, and Reactivated states) with smart recalculated billing cycles that reset on payment.
+- **Interactive Metrics & Dashboards:** Animated charts and metrics showing Monthly Recurring Revenue (MRR), Overdue accounts, and Upcoming subscriptions with deep-dive detailed modals and direct action flows.
+- **Unified Notification System:** Integrated WhatsApp-template notification trigger flows mapping localized customer country codes (Brazil +55, USA +1, Portugal +351) for frictionless overdue reminders.
+- **Secure Cross-Tab Sessions:** JWT-based secure sessions backed by Redis and persisted via `localStorage` with Refresh Token Rotation, allowing up to 7-day persistent logins and automated dashboard routing.
+- **Event-Driven Architecture:** Decoupled audit logs, metric compilation, and notification dispatching leveraging Apache Kafka.
+- **Robust Local Seeding:** Seed scripts that pre-populate realistic gym memberships (*Carlos' FitLife Gym*), subscriptions, faturations, and transactions spanning a 2.4-year history for immediate visual testing.
 
 ---
 
@@ -49,7 +52,7 @@ graph TD
 ```
 
 ### Subscription Lifecycle State Machine
-The core of Nexum revolves around a deterministic state machine managing the billing cycles:
+The core billing engine of Nexum is governed by a deterministic state machine:
 
 ```mermaid
 graph TD
@@ -67,42 +70,67 @@ graph TD
 ## 🛠️ Technology Stack
 
 ### Backend
-- **Java 25** + **Spring Boot 4.0.6**
-- Spring Security, Spring Data JPA, Spring Kafka
-- Database Migrations with **Flyway**
-- JWT (JJWT) for Auth
+- **Java 25** + **Spring Boot 4.0.6** (using Spring Security, Spring Data JPA, and Spring Kafka)
+- Relational mapping with **Hibernate 7** and schema migrations managed via **Flyway**
+- JWT Token management (HS512 algorithm with UUID subjects) using **JJWT 0.12.6**
+- Decoupled REST error handlers (`GlobalExceptionHandler`)
 
 ### Frontend
-- **React 19** + **TypeScript**
-- **Vite 8** (Build tool)
-- **Tailwind CSS v4** (`@tailwindcss/vite`)
-- React Query (TanStack), Framer Motion, Lucide Icons
+- **React 19** + **TypeScript** + **Vite 8** (Build tool)
+- Tailwind CSS v4 (`@tailwindcss/vite`) & Vanilla CSS
+- State/Server Sync with **TanStack React Query**
+- Animations and feedback loops with **Framer Motion** & **Lucide Icons**
 
 ### Infrastructure & Orchestration
 - **PostgreSQL 16** (Primary Database)
-- **Redis** (Token & Cache Management)
-- **Apache Kafka** (Event Bus / Messaging)
-- **Docker Compose** (Local Environment)
+- **Redis** (Session & Token Cache)
+- **Apache Kafka** (Event Broker / Message Bus)
+- **Docker** & **Docker Compose** (Local Environment Orchestration)
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-Before you begin, ensure you have the following installed on your machine:
-- **Java 25** (JDK)
-- **Node.js** (v20+ recommended) & **npm**
+Ensure you have the following installed locally:
 - **Docker** & **Docker Compose**
+- **Java 25** (JDK) and **Node.js v20** (Required only for Developer Mode)
 
-### 1. Infrastructure Setup
-Start the local infrastructure (Database, Cache, and Message Broker) using Docker:
+---
+
+### Option A: Quick Start (One-Click Local Execution)
+
+The easiest way to start, test, and run the entire application locally. It provisions Docker containers in the background, cleans up any previous port or container conflicts, seeds realistic metrics history, and launches both frontend and backend development instances automatically.
+
+1. **Start the Application:**
+   Double-click the `run.cmd` file in the root of the project, or run the following command in PowerShell:
+   ```powershell
+   .\run.cmd
+   ```
+2. **Access the Application:**
+   - **Frontend App:** `http://localhost:5173`
+   - **Backend API:** `http://localhost:8080`
+   - **API Documentation (Swagger UI):** `http://localhost:8080/swagger-ui/index.html`
+
+*Default Login Credentials:* `teste@teste` / `teste123` (Carlos' FitLife Gym admin user)
+
+*To stop the application:* Simply close the opened terminal windows and stop the docker containers.
+
+---
+
+### Option B: Developer Mode (Manual Execution)
+
+Use this mode if you want to run backend and frontend in local watch/development environments.
+
+#### 1. Infrastructure Setup
+Spin up the PostgreSQL, Redis, and Kafka services:
 ```powershell
 cd docker
 docker compose up -d
 ```
 *Services run at:* PostgreSQL (`localhost:5432`), Redis (`localhost:6379`), Kafka (`localhost:9092`).
 
-### 2. Backend Configuration & Execution
+#### 2. Backend Configuration & Execution
 Create a `.env` file inside the `backend/` directory with the following variables:
 ```env
 JWT_SECRET=your_jwt_secret_key_minimum_512_bits_long
@@ -117,30 +145,29 @@ cd backend
 .\mvnw clean compile
 .\mvnw spring-boot:run
 ```
-*The API will be available at `http://localhost:8080`.*
 
-### 3. Frontend Configuration & Execution
+#### 3. Frontend Configuration & Execution
 Install dependencies and start the Vite development server:
 ```powershell
 cd frontend
 npm install
 npm run dev
 ```
-*The UI will be available at `http://localhost:5173`.*
 
 ---
 
 ## 🧪 Testing & Validation
 
-The project contains a comprehensive suite of unit and integration tests. The integration tests utilize **Testcontainers** to spin up ephemeral PostgreSQL and Kafka instances.
-
-To run the backend tests:
+### Backend Testing (Unit & Integration)
+Integration tests extend `IntegrationTestBase` and spin up ephemeral Postgres/Kafka instances utilizing **Testcontainers** to validate transaction safety.
+To run the full test suite:
 ```powershell
 cd backend
 .\mvnw test
 ```
 
-To run the frontend linters and type checkers:
+### Frontend Linters & Build Checks
+To run the code linter and the TypeScript compiler validation checks:
 ```powershell
 cd frontend
 npm run lint
@@ -200,11 +227,9 @@ frontend/
 ├── tsconfig.json
 ├── tsconfig.node.json
 └── vite.config.ts
-.gitignore
-commit-guide.md
-README.md
-Rodar.txt
-Subscription.md
+├── .gitignore
+├── README.md
+└── run.cmd
 ```
 
 ---
@@ -213,19 +238,15 @@ Subscription.md
 
 | Resource | Description |
 |---|---|
-| [Subscription Lifecycle Design](./Subscription.md) | Technical specs and workflow of the core subscription state machine. |
-| [Commit Guide](./commit-guide.md) | Guidelines and standard conventions for writing clean, semantic git commits. |
+| [Backend API Module](./backend/README.md) | Detailed documentation on the Java 25 + Spring Boot 4 REST API, testing, and lifecycle. |
+| [Frontend App Module](./frontend/README.md) | Detailed documentation on the React 19 + TypeScript SPA, state synchronization, and UX/UI. |
+| [Docker Infrastructure Module](./docker/README.md) | Detailed documentation on the Postgres, Redis, and Kafka container services. |
+| [Versão em Português (docs/README.pt-BR.md)](./docs/README.pt-BR.md) | Documentação completa do projeto em Português. |
 
 ---
 
 ## 📄 License
 
-This project is proprietary and confidential.
+This project is proprietary and confidential. All rights reserved.
 
 ---
-
-<!-- <div align="center">
-
-[![Star History Chart](https://api.star-history.com/svg?repos=OdevMatheus/nexus-monorepo&type=Date)](https://star-history.com/#OdevMatheus/nexus-monorepo&Date)
-
-</div> --!>
