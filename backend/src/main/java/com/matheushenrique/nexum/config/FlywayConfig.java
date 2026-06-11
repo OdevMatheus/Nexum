@@ -27,8 +27,10 @@ public class FlywayConfig {
         return new BeanDefinitionRegistryPostProcessor() {
             @Override
             public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
-                BeanDefinition bd = registry.getBeanDefinition("entityManagerFactory");
-                bd.setDependsOn("flyway");
+                if (registry.containsBeanDefinition("entityManagerFactory")) {
+                    BeanDefinition bd = registry.getBeanDefinition("entityManagerFactory");
+                    bd.setDependsOn("flyway");
+                }
             }
 
             @Override
