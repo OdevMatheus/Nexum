@@ -154,4 +154,38 @@ public class AuthServiceImpl {
 
         return new MessageResponse("Logged out successfully");
     }
+
+    @Transactional
+    public MessageResponse forgotPassword(ForgotPasswordRequest request) {
+        var userOpt = userRepository.findByEmail(request.email());
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            String token = UUID.randomUUID().toString();
+            user.setPasswordResetToken(token);
+            user.setPasswordResetTokenExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
+            userRepository.save(user);
+
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), token);
+        }
+
+        return new MessageResponse("Se o e-mail estiver cadastrado, um link de recuperação foi enviado.");
+    }
+
+    @Transactional
+    public MessageResponse resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByPasswordResetToken(request.token())
+                .orElseThrow(() -> new InvalidTokenException("Invalid or expired password reset token"));
+
+        if (Instant.now().isAfter(user.getPasswordResetTokenExpiresAt())) {
+            throw new InvalidTokenException("Password reset token has expired");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetTokenExpiresAt(null);
+        userRepository.save(user);
+
+        return new MessageResponse("Sua senha foi redefinida com sucesso. Você já pode fazer login.");
+    }
 }
