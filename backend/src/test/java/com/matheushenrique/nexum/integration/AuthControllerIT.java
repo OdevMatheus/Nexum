@@ -4,6 +4,8 @@ import com.matheushenrique.nexum.config.IntegrationTestBase;
 import com.matheushenrique.nexum.dtos.request.LoginRequest;
 import com.matheushenrique.nexum.dtos.request.RefreshTokenRequest;
 import com.matheushenrique.nexum.dtos.request.RegisterRequest;
+import com.matheushenrique.nexum.dtos.request.ForgotPasswordRequest;
+import com.matheushenrique.nexum.dtos.request.ResetPasswordRequest;
 import com.matheushenrique.nexum.entities.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -254,6 +256,71 @@ class AuthControllerIT extends IntegrationTestBase {
         void shouldReturn401WithoutToken() throws Exception {
             mockMvc.perform(post("/v1/auth/logout"))
                     .andExpect(status().isUnauthorized());
+        }
+    }
+
+    // forgot-password
+
+    @Nested
+    @DisplayName("POST /forgot-password")
+    class ForgotPassword {
+
+        @Test
+        @DisplayName("should accept forgot-password request and return 200")
+        void shouldAcceptForgotPasswordRequest() throws Exception {
+            var request = new ForgotPasswordRequest("test@nexum.dev");
+
+            mockMvc.perform(post("/v1/auth/forgot-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value(containsString("Se o e-mail estiver cadastrado")));
+        }
+
+        @Test
+        @DisplayName("should return 400 for invalid email")
+        void shouldReturn400ForInvalidEmail() throws Exception {
+            var request = new ForgotPasswordRequest("invalid-email");
+
+            mockMvc.perform(post("/v1/auth/forgot-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json(request)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    // reset-password
+
+    @Nested
+    @DisplayName("POST /reset-password")
+    class ResetPassword {
+
+        @Test
+        @DisplayName("should reset password with valid token and return 200")
+        void shouldResetPasswordWithValidToken() throws Exception {
+            User user = userRepository.findByEmail("test@nexum.dev").orElseThrow();
+            user.setPasswordResetToken("valid-reset-token");
+            user.setPasswordResetTokenExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
+            userRepository.save(user);
+
+            var request = new ResetPasswordRequest("valid-reset-token", "NewSecurePassword123!");
+
+            mockMvc.perform(post("/v1/auth/reset-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value(containsString("sucesso")));
+        }
+
+        @Test
+        @DisplayName("should return 403 for expired or invalid token")
+        void shouldReturn403ForInvalidToken() throws Exception {
+            var request = new ResetPasswordRequest("invalid-reset-token", "NewSecurePassword123!");
+
+            mockMvc.perform(post("/v1/auth/reset-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json(request)))
+                    .andExpect(status().isForbidden());
         }
     }
 }

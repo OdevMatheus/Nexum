@@ -3,6 +3,8 @@ package com.matheushenrique.nexum.unit;
 import com.matheushenrique.nexum.dtos.request.LoginRequest;
 import com.matheushenrique.nexum.dtos.request.RefreshTokenRequest;
 import com.matheushenrique.nexum.dtos.request.RegisterRequest;
+import com.matheushenrique.nexum.dtos.request.ForgotPasswordRequest;
+import com.matheushenrique.nexum.dtos.request.ResetPasswordRequest;
 import com.matheushenrique.nexum.entities.User;
 import com.matheushenrique.nexum.repositories.UserRepository;
 import com.matheushenrique.nexum.security.EmailService;
@@ -306,6 +308,98 @@ class AuthServiceImplTest {
 
             assertThatThrownBy(() -> authService.logout(userId))
                     .isInstanceOf(RuntimeException.class);
+        }
+    }
+
+    // forgotPassword
+
+    @Nested
+    @DisplayName("forgotPassword")
+    class ForgotPassword {
+
+        @Test
+        @DisplayName("should set password reset token and send email if user exists")
+        void shouldSetResetTokenAndSendEmail() {
+            var request = new ForgotPasswordRequest("matheus@example.com");
+
+            when(userRepository.findByEmail("matheus@example.com")).thenReturn(Optional.of(verifiedUser));
+            when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+            var response = authService.forgotPassword(request);
+
+            assertThat(response.message()).contains("Se o e-mail estiver cadastrado");
+            verify(userRepository).save(verifiedUser);
+            assertThat(verifiedUser.getPasswordResetToken()).isNotNull();
+            assertThat(verifiedUser.getPasswordResetTokenExpiresAt()).isNotNull();
+            verify(emailService).sendPasswordResetEmail(eq("matheus@example.com"), eq("Matheus"), anyString());
+        }
+
+        @Test
+        @DisplayName("should do nothing but return success if user does not exist")
+        void shouldDoNothingIfUserDoesNotExist() {
+            var request = new ForgotPasswordRequest("nonexistent@example.com");
+
+            when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+
+            var response = authService.forgotPassword(request);
+
+            assertThat(response.message()).contains("Se o e-mail estiver cadastrado");
+            verify(userRepository, never()).save(any());
+            verify(emailService, never()).sendPasswordResetEmail(any(), any(), any());
+        }
+    }
+
+    // resetPassword
+
+    @Nested
+    @DisplayName("resetPassword")
+    class ResetPassword {
+
+        @Test
+        @DisplayName("should change password with valid token")
+        void shouldChangePasswordWithValidToken() {
+            verifiedUser.setPasswordResetToken("reset_token");
+            verifiedUser.setPasswordResetTokenExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
+
+            var request = new ResetPasswordRequest("reset_token", "new_secure_password");
+
+            when(userRepository.findByPasswordResetToken("reset_token")).thenReturn(Optional.of(verifiedUser));
+            when(passwordEncoder.encode("new_secure_password")).thenReturn("new_encoded_password");
+            when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+            var response = authService.resetPassword(request);
+
+            assertThat(response.message()).contains("sucesso");
+            assertThat(verifiedUser.getPasswordHash()).isEqualTo("new_encoded_password");
+            assertThat(verifiedUser.getPasswordResetToken()).isNull();
+            assertThat(verifiedUser.getPasswordResetTokenExpiresAt()).isNull();
+            verify(userRepository).save(verifiedUser);
+        }
+
+        @Test
+        @DisplayName("should throw InvalidTokenException for unknown token")
+        void shouldThrowForUnknownToken() {
+            var request = new ResetPasswordRequest("unknown_token", "new_secure_password");
+
+            when(userRepository.findByPasswordResetToken("unknown_token")).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authService.resetPassword(request))
+                    .isInstanceOf(InvalidTokenException.class);
+        }
+
+        @Test
+        @DisplayName("should throw InvalidTokenException for expired token")
+        void shouldThrowForExpiredToken() {
+            verifiedUser.setPasswordResetToken("expired_token");
+            verifiedUser.setPasswordResetTokenExpiresAt(Instant.now().minus(1, ChronoUnit.HOURS));
+
+            var request = new ResetPasswordRequest("expired_token", "new_secure_password");
+
+            when(userRepository.findByPasswordResetToken("expired_token")).thenReturn(Optional.of(verifiedUser));
+
+            assertThatThrownBy(() -> authService.resetPassword(request))
+                    .isInstanceOf(InvalidTokenException.class)
+                    .hasMessageContaining("expired");
         }
     }
 }
