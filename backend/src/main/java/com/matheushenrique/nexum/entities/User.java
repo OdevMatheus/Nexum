@@ -40,6 +40,12 @@ public class User {
     @Column(name = "email_token_expires_at")
     private Instant emailTokenExpiresAt;
 
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_token_expires_at")
+    private Instant passwordResetTokenExpiresAt;
+
     @Column(name = "refresh_token")
     private String refreshToken;
 
