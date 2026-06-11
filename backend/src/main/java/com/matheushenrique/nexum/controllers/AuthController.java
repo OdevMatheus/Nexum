@@ -4,6 +4,8 @@ import com.matheushenrique.nexum.config.ApiGlobalErrors;
 import com.matheushenrique.nexum.dtos.request.LoginRequest;
 import com.matheushenrique.nexum.dtos.request.RefreshTokenRequest;
 import com.matheushenrique.nexum.dtos.request.RegisterRequest;
+import com.matheushenrique.nexum.dtos.request.ForgotPasswordRequest;
+import com.matheushenrique.nexum.dtos.request.ResetPasswordRequest;
 import com.matheushenrique.nexum.dtos.response.AuthResponse;
 import com.matheushenrique.nexum.dtos.response.MessageResponse;
 import com.matheushenrique.nexum.services.impl.AuthServiceImpl;
@@ -59,5 +61,17 @@ public class AuthController {
     public ResponseEntity<MessageResponse> logout(@AuthenticationPrincipal UserDetails principal) {
         UUID userId = UUID.fromString(principal.getUsername());
         return ResponseEntity.ok(authService.logout(userId));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Solicitar recuperação de senha", description = "Envia um e-mail com link para redefinir a senha do usuário.")
+    public ResponseEntity<MessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Redefinir senha", description = "Altera a senha do usuário utilizando o token de recuperação enviado por e-mail.")
+    public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request));
     }
 }
