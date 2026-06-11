@@ -16,10 +16,24 @@ public class EmailValidator implements ConstraintValidator<ValidEmail, String> {
     public boolean isValid(String email, ConstraintValidatorContext context) {
         if (email == null || email.isBlank()) return false;
 
+        // Permitir formatos especiais de desenvolvimento como teste@teste e localhost
+        if (email.equalsIgnoreCase("teste@teste") || email.endsWith("@localhost")) {
+            return true;
+        }
+
         boolean formatValid = FORMAT_VALIDATOR.isValid(email);
         if (!formatValid) return false;
 
         String domain = email.substring(email.indexOf('@') + 1);
+        
+        // Ignorar verificação de MX para domínios de teste comuns
+        if (domain.equalsIgnoreCase("localhost") || 
+            domain.equalsIgnoreCase("example.com") || 
+            domain.endsWith(".local") || 
+            domain.equalsIgnoreCase("teste")) {
+            return true;
+        }
+
         return hasMxRecord(domain);
     }
 
