@@ -4,6 +4,8 @@ import type {
     RegisterRequest,
     LoginRequest,
     RefreshTokenRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
     AuthResponse,
     MessageResponse,
     ErrorResponse,
@@ -98,6 +100,16 @@ export const authService = {
 
     verifyEmail: async (token: string): Promise<MessageResponse> => {
         const response = await api.get<MessageResponse>(`/v1/auth/verify-email?token=${token}`)
+        return response.data
+    },
+
+    forgotPassword: async (data: ForgotPasswordRequest): Promise<MessageResponse> => {
+        const response = await api.post<MessageResponse>('/v1/auth/forgot-password', data)
+        return response.data
+    },
+
+    resetPassword: async (data: ResetPasswordRequest): Promise<MessageResponse> => {
+        const response = await api.post<MessageResponse>('/v1/auth/reset-password', data)
         return response.data
     },
 

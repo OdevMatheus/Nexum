@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../services/authService'
-import type { RegisterRequest, LoginRequest } from '../types/auth'
+import type { RegisterRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../types/auth'
 
 export const useRegister = () => {
     return useMutation({
@@ -32,5 +32,17 @@ export const useLogout = () => {
             queryClient.clear()
             navigate('/login')
         },
+    })
+}
+
+export const useForgotPassword = () => {
+    return useMutation({
+        mutationFn: (data: ForgotPasswordRequest) => authService.forgotPassword(data),
+    })
+}
+
+export const useResetPassword = () => {
+    return useMutation({
+        mutationFn: (data: ResetPasswordRequest) => authService.resetPassword(data),
     })
 }
