@@ -3,6 +3,8 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/auth/LoginPage.tsx'
 import RegisterPage from './pages/auth/RegisterPage.tsx'
 import VerifyEmailPage from './pages/auth/VerifyEmailPage.tsx'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage.tsx'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage.tsx'
 import DashboardPage from "./pages/dashboard/DashboardPage.tsx";
 import ClientsPage from "./pages/clients/ClientsPage.tsx";
 import ClientDetailPage from "./pages/clients/ClientDetailPage.tsx";
@@ -27,6 +29,8 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route
                     path="/dashboard"
                     element={
