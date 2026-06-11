@@ -21,8 +21,10 @@ public class TestContainersConfig {
     }
 
     @Bean
-    @ServiceConnection
     public KafkaContainer kafkaContainer() {
-        return new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"));
+        KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"));
+        kafka.start();
+        System.setProperty("spring.kafka.bootstrap-servers", kafka.getBootstrapServers());
+        return kafka;
     }
 }
