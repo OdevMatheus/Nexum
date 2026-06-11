@@ -18,6 +18,16 @@ if %errorlevel% neq 0 (
 cd ..
 echo.
 
+echo [1.5/3] Aguardando o banco de dados PostgreSQL estar pronto...
+:wait_postgres
+docker exec nexum-db pg_isready -U nexum_user -d nexum_db >nul 2>&1
+if %errorlevel% neq 0 (
+    timeout /t 1 >nul
+    goto wait_postgres
+)
+echo Banco de dados pronto para conexoes!
+echo.
+
 echo [2/3] Iniciando API Backend (Spring Boot)...
 start "Nexum API Backend" powershell -NoProfile -NoExit -Command "cd backend; .\mvnw spring-boot:run"
 echo.
