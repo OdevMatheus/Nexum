@@ -10,6 +10,7 @@ export default function LoginPage() {
     useDocumentTitle('Entrar na conta');
     const { mutate, isPending, error } = useLogin()
     const navigate = useNavigate()
+    const [infoMessage, setInfoMessage] = useState<string | null>(null)
     const [form, setForm] = useState<LoginRequest>({
         email: '',
         password: '',
@@ -19,6 +20,13 @@ export default function LoginPage() {
         const token = localStorage.getItem('accessToken') || localStorage.getItem('refreshToken');
         if (token) {
             navigate('/dashboard', { replace: true });
+        }
+
+        if (new URLSearchParams(window.location.search).get('emailChanged') === 'true') {
+            const timer = setTimeout(() => {
+                setInfoMessage('E-mail atualizado com sucesso! Por segurança, enviamos um link de confirmação para o seu novo e-mail. Por favor, confirme-o para reativar sua conta e fazer o login.')
+            }, 0);
+            return () => clearTimeout(timer);
         }
     }, [navigate]);
 
@@ -35,6 +43,12 @@ export default function LoginPage() {
                 <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-3xl p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-stone-100 dark:border-stone-800 transition-colors duration-500">
                     <h1 className="text-2xl font-bold text-stone-800 dark:text-stone-100 mb-1 text-center transition-colors">Bem-vindo de volta</h1>
                     <p className="text-stone-500 dark:text-stone-400 text-sm mb-8 text-center transition-colors">Acesse sua conta Nexum para continuar</p>
+
+                    {infoMessage && (
+                        <div className="mb-6 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm text-center font-medium transition-colors">
+                            {infoMessage}
+                        </div>
+                    )}
 
                     {error && (
                         <div className="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm text-center font-medium transition-colors">

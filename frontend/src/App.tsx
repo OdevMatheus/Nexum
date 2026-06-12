@@ -11,6 +11,7 @@ import ClientDetailPage from "./pages/clients/ClientDetailPage.tsx";
 import PlansPage from "./pages/plans/PlansPage.tsx";
 import PlanDetailPage from "./pages/plans/PlanDetailPage.tsx";
 import SubscriptionsPage from "./pages/subscriptions/SubscriptionsPage.tsx";
+import SettingsPage from "./pages/settings/SettingsPage.tsx";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ThemeToggle } from "./components/ThemeToggle";
 
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/plans" element={<PrivateRoute><PlansPage /></PrivateRoute>} />
                 <Route path="/plans/:id" element={<PrivateRoute><PlanDetailPage /></PrivateRoute>} />
                 <Route path="/subscriptions" element={<PrivateRoute><SubscriptionsPage /></PrivateRoute>} />
+                <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
             </Routes>
         </ThemeProvider>
     )
