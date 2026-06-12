@@ -22,62 +22,62 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ApiGlobalErrors
 @SecurityRequirement(name = "bearer-key")
-@Tag(name = "5. Métricas", description = "Métricas e painel para o dashboard")
+@Tag(name = "5. Métricas", description = "Métricas e painel de controle do dashboard")
 public class MetricsController {
 
     private final MetricsService metricsService;
 
     @GetMapping("/summary")
-    @Operation(summary = "Get Dashboard Summary", description = "Retorna um resumo de assinaturas ativas, vencidas e a vencer e MRR")
+    @Operation(summary = "Obter Resumo do Dashboard", description = "Retorna o painel geral de faturamento e status (MRR, inadimplências, assinaturas ativas e a vencer).")
     public ResponseEntity<MetricsSummaryResponse> summary(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getSummary(UUID.fromString(user.getUsername())));
     }
 
     @GetMapping("/revenue")
-    @Operation(summary = "Get Monthly Revenue", description = "Retorna o historico de receita nos ultimos meses")
+    @Operation(summary = "Obter Receita Mensal", description = "Retorna o histórico detalhado de receitas consolidadas mês a mês.")
     public ResponseEntity<List<MonthlyRevenueResponse>> monthlyRevenue(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getMonthlyRevenue(UUID.fromString(user.getUsername())));
     }
 
     @GetMapping("/upcoming")
-    @Operation(summary = "Get Upcoming Subscriptions", description = "Retorna lista de faturas a vencer nos proximos dias")
+    @Operation(summary = "Obter Faturas a Vencer", description = "Retorna as assinaturas com faturas que vencerão nos próximos dias.")
     public ResponseEntity<List<UpcomingSubscriptionResponse>> upcoming(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getUpcoming(UUID.fromString(user.getUsername())));
     }
 
     @GetMapping("/recent-payments")
-    @Operation(summary = "Get Recent Payments", description = "Get recent subscription cycles")
+    @Operation(summary = "Obter Pagamentos Recentes", description = "Retorna os últimos ciclos de faturamento quitados no sistema.")
     public ResponseEntity<List<RecentPaymentResponse>> recentPayments(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getRecentPayments(UUID.fromString(user.getUsername())));
     }
 
     @GetMapping("/active-by-plan")
-    @Operation(summary = "Get Active Subscriptions By Plan", description = "Retorna a distribuição de assinaturas ativas por plano")
+    @Operation(summary = "Obter Assinaturas por Plano", description = "Retorna a volumetria de assinaturas ativas e em período de testes agrupadas por plano.")
     public ResponseEntity<List<PlanDistributionResponse>> activeByPlan(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getActiveByPlan(UUID.fromString(user.getUsername())));
     }
 
     @GetMapping("/mrr-by-plan")
-    @Operation(summary = "Get MRR Distribution By Plan", description = "Retorna a distribuição de MRR por plano para o mês atual")
+    @Operation(summary = "Obter Distribuição de MRR", description = "Retorna o faturamento recorrente mensal (MRR) distribuído por plano.")
     public ResponseEntity<List<MrrDistributionResponse>> mrrByPlan(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getMrrDistribution(UUID.fromString(user.getUsername())));
     }
 
     @GetMapping("/mrr-contributors")
-    @Operation(summary = "Get MRR Contributors", description = "Retorna a lista de faturas/clientes que contribuem para o MRR do mês atual")
+    @Operation(summary = "Obter Contribuintes do MRR", description = "Retorna a lista de clientes e faturas que compõem o faturamento recorrente do mês atual.")
     public ResponseEntity<List<MrrContributorResponse>> mrrContributors(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getMrrContributors(UUID.fromString(user.getUsername())));
     }
 
     @GetMapping("/client-growth")
-    @Operation(summary = "Get Client Growth Over Time", description = "Retorna o crescimento acumulado de clientes registrados nos últimos 6 meses")
+    @Operation(summary = "Obter Crescimento de Clientes", description = "Retorna a evolução do número acumulado de clientes registrados ao longo do tempo.")
     public ResponseEntity<List<ClientGrowthResponse>> clientGrowth(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(metricsService.getClientGrowth(UUID.fromString(user.getUsername())));

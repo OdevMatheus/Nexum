@@ -9,7 +9,7 @@ public record UpdateClientRequest(
 
         @NotBlank(message = "Name is required")
         @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
-        @Schema(description = "Updated full name or corporate name", example = "Acme Global Solutions")
+        @Schema(description = "Nome completo ou razão social atualizado do cliente", example = "Acme Global Solutions")
         String name,
 
         @NotBlank(message = "Email is required")

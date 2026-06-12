@@ -73,7 +73,7 @@ public class SubscriptionController {
     }
 
     @PostMapping("/{id}/pay")
-    @Operation(summary = "Pay Subscription", description = "Registra o pagamento manual de uma assinatura.")
+    @Operation(summary = "Registrar Pagamento", description = "Registra o pagamento manual de uma fatura de assinatura.")
     public ResponseEntity<SubscriptionResponse> pay(@PathVariable UUID id) {
         return ResponseEntity.ok(subscriptionService.pay(id));
     }
