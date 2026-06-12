@@ -18,8 +18,13 @@ export const getErrorMessage = (error: unknown): string => {
     return message ? translateError(message) : 'Ocorreu um erro inesperado. Tente novamente.'
 }
 
+const getBaseUrl = (): string => {
+    // Retorna a URL base do backend de acordo com o ambiente (desenvolvimento ou producao unificada)
+    return import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:8080' : window.location.origin);
+}
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080',
+    baseURL: getBaseUrl(),
     headers: {
         'Content-Type': 'application/json',
     },
@@ -49,7 +54,7 @@ api.interceptors.response.use(
             if (refreshToken) {
                 try {
                     const { data } = await axios.post<AuthResponse>(
-                        `${import.meta.env.VITE_API_URL ?? 'http://localhost:8080'}/v1/auth/refresh`,
+                        `${getBaseUrl()}/v1/auth/refresh`,
                         { refreshToken }
                     )
 

@@ -12,29 +12,30 @@ spring:
 
   # Conexão com o banco
   datasource:
-    url: jdbc:postgresql://localhost:5432/nexum_db
-    username: nexum_user
-    password: nexum_password
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/nexum_db}
+    username: ${DATABASE_USERNAME:nexum_user}
+    password: ${DATABASE_PASSWORD:nexum_password}
     driver-class-name: org.postgresql.Driver
 
   # Hibernate
   jpa:
     hibernate:
       ddl-auto: validate #Flyway
-    show-sql: true
+    show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
-        format_sql: true
+        format_sql: ${FORMAT_SQL:false}
 
   # Conexão com o Redis (cache)
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
   # Conexão com o kafka (eventos)
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       group-id: nexum-group
       auto-offset-reset: earliest
@@ -46,8 +47,8 @@ spring:
 
 logging:
   level:
-    org.springdoc: DEBUG
-    org.springframework.web: DEBUG
+    org.springdoc: ${LOG_LEVEL:INFO}
+    org.springframework.web: ${LOG_LEVEL:INFO}
 
 springdoc:
   swagger-ui:
