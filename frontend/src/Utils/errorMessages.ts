@@ -7,6 +7,8 @@ const errorMap: Record<string, string> = {
     'A new verification email has been sent. Check your inbox.': 'Um novo e-mail de verificação foi enviado.',
     'Client not found': 'Cliente não encontrado.',
     'Email already in use': 'Este e-mail já está em uso por outro cliente ativo.',
+    'Email is already in use': 'Este e-mail já está em uso por outro usuário.',
+    'Current password is incorrect': 'A senha atual fornecida está incorreta.',
 
     'Invalid email address': 'Endereço de e-mail inválido ou inexistente.',
     'Password must contain at least one letter and one number': 'A senha deve conter pelo menos uma letra e um número.',
@@ -19,5 +21,15 @@ const errorMap: Record<string, string> = {
 }
 
 export const translateError = (message: string): string => {
-    return errorMap[message] ?? 'Ocorreu um erro inesperado. Tente novamente.'
+    if (errorMap[message]) {
+        return errorMap[message]
+    }
+
+    for (const [key, value] of Object.entries(errorMap)) {
+        if (message.toLowerCase().includes(key.toLowerCase())) {
+            return value
+        }
+    }
+
+    return 'Ocorreu um erro inesperado. Tente novamente.'
 }

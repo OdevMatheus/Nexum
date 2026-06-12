@@ -58,6 +58,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<ErrorResponse> handleIncorrectPassword(IncorrectPasswordException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler({InvalidTokenException.class, EmailNotVerifiedException.class})
     public ResponseEntity<ErrorResponse> handleForbidden(RuntimeException ex) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage());
