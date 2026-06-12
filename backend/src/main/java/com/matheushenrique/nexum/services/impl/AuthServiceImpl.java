@@ -73,6 +73,18 @@ public class AuthServiceImpl {
             throw new InvalidTokenException("Verification token has expired");
         }
 
+        if (user.getPendingEmail() != null) {
+            user.setEmail(user.getPendingEmail());
+            user.setPendingEmail(null);
+            user.setEmailVerified(true);
+            user.setEmailVerificationToken(null);
+            user.setEmailTokenExpiresAt(null);
+            user.setRefreshToken(null);
+            user.setRefreshTokenExpiresAt(null);
+            userRepository.save(user);
+            return new MessageResponse("Email updated and verified successfully. Please login with your new email.");
+        }
+
         user.setEmailVerified(true);
         user.setEmailVerificationToken(null);
         user.setEmailTokenExpiresAt(null);

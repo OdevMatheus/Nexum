@@ -63,7 +63,7 @@ class UserControllerIT extends IntegrationTestBase {
         }
 
         @Test
-        @DisplayName("should update name and email, trigger verification and expire session when email is changed")
+        @DisplayName("should update name and record pending email, leaving current email active when email is changed")
         void shouldTriggerVerificationWhenEmailIsChanged() throws Exception {
             UpdateProfileRequest request = new UpdateProfileRequest("Matheus Editado", "novo.email@example.com");
 
@@ -72,15 +72,16 @@ class UserControllerIT extends IntegrationTestBase {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value(containsString("verification email has been sent")));
+                    .andExpect(jsonPath("$.message").value(containsString("verification link has been sent")));
 
             // Verify in DB
             User updatedUser = userRepository.findById(authenticatedUserId).orElseThrow();
             assert(updatedUser.getName().equals("Matheus Editado"));
-            assert(updatedUser.getEmail().equals("novo.email@example.com"));
-            assert(!updatedUser.isEmailVerified());
+            assert(updatedUser.getEmail().equals("test@example.com"));
+            assert(updatedUser.getPendingEmail().equals("novo.email@example.com"));
+            assert(updatedUser.isEmailVerified());
             assert(updatedUser.getEmailVerificationToken() != null);
-            assert(updatedUser.getRefreshToken() == null); // session expired
+            assert(updatedUser.getRefreshToken() != null);
         }
 
         @Test

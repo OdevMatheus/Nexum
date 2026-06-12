@@ -47,24 +47,21 @@ public class UserServiceImpl implements UserService {
                 throw new EmailAlreadyInUseException("Email is already in use: " + request.email());
             }
 
-            user.setEmail(request.email());
-            user.setEmailVerified(false);
-
             String token = UUID.randomUUID().toString();
+            user.setPendingEmail(request.email());
             user.setEmailVerificationToken(token);
             user.setEmailTokenExpiresAt(Instant.now().plus(24, ChronoUnit.HOURS));
-
-            user.setRefreshToken(null);
-            user.setRefreshTokenExpiresAt(null);
 
             user.setName(request.name());
             userRepository.save(user);
 
-            emailService.sendVerificationEmail(user.getEmail(), user.getName(), token);
+            emailService.sendVerificationEmail(user.getPendingEmail(), user.getName(), token);
 
-            return new MessageResponse("Profile updated successfully. A verification email has been sent to your new email address. Please verify your email and login again.");
+            return new MessageResponse("Profile updated successfully. A verification link has been sent to your new email address. Please verify your new email to complete the change. Until then, your current email remains active.");
         }
 
+        user.setPendingEmail(null);
+        user.setEmailVerificationToken(null);
         user.setName(request.name());
         userRepository.save(user);
 

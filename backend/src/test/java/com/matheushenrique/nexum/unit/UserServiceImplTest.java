@@ -111,7 +111,7 @@ class UserServiceImplTest {
         }
 
         @Test
-        @DisplayName("should update name and email, invalidate session, and send verification email when email is changed")
+        @DisplayName("should update name and record pending email, leaving session active when email is changed")
         void shouldUpdateNameEmailAndRequestVerificationWhenEmailIsChanged() {
             when(userRepository.findById(userId)).thenReturn(Optional.of(user));
             when(userRepository.existsByEmail("novo@nexum.com")).thenReturn(false);
@@ -119,14 +119,14 @@ class UserServiceImplTest {
 
             MessageResponse response = userService.updateProfile(userId, request);
 
-            assertThat(response.message()).contains("A verification email has been sent to your new email address");
+            assertThat(response.message()).contains("verification link has been sent to your new email address");
             assertThat(user.getName()).isEqualTo("Matheus Editado");
-            assertThat(user.getEmail()).isEqualTo("novo@nexum.com");
-            assertThat(user.isEmailVerified()).isFalse();
+            assertThat(user.getEmail()).isEqualTo("matheus.test@nexum.com");
+            assertThat(user.getPendingEmail()).isEqualTo("novo@nexum.com");
+            assertThat(user.isEmailVerified()).isTrue();
             assertThat(user.getEmailVerificationToken()).isNotNull();
             assertThat(user.getEmailTokenExpiresAt()).isNotNull();
-            assertThat(user.getRefreshToken()).isNull(); // Session invalidated
-            assertThat(user.getRefreshTokenExpiresAt()).isNull();
+            assertThat(user.getRefreshToken()).isEqualTo("old_refresh_token");
 
             verify(userRepository).save(user);
             verify(emailService).sendVerificationEmail(eq("novo@nexum.com"), eq("Matheus Editado"), anyString());

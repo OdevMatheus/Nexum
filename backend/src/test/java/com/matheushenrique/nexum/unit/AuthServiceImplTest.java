@@ -145,6 +145,32 @@ class AuthServiceImplTest {
         }
 
         @Test
+        @DisplayName("should update and verify email when pending email exists")
+        void shouldUpdateAndVerifyEmailWhenPendingEmailExists() {
+            User userWithPending = User.builder()
+                    .name("Matheus")
+                    .email("antigo@nexum.com")
+                    .pendingEmail("novo@nexum.com")
+                    .emailVerified(true)
+                    .emailVerificationToken("pending_token")
+                    .emailTokenExpiresAt(Instant.now().plus(24, ChronoUnit.HOURS))
+                    .refreshToken("old_session")
+                    .build();
+
+            when(userRepository.findByEmailVerificationToken("pending_token"))
+                    .thenReturn(Optional.of(userWithPending));
+            when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+            var response = authService.verifyEmail("pending_token");
+
+            assertThat(response.message()).contains("Email updated and verified successfully");
+            assertThat(userWithPending.getEmail()).isEqualTo("novo@nexum.com");
+            assertThat(userWithPending.getPendingEmail()).isNull();
+            assertThat(userWithPending.isEmailVerified()).isTrue();
+            assertThat(userWithPending.getRefreshToken()).isNull();
+        }
+
+        @Test
         @DisplayName("should throw InvalidTokenException for unknown token")
         void shouldThrowForUnknownToken() {
             when(userRepository.findByEmailVerificationToken("unknown")).thenReturn(Optional.empty());
