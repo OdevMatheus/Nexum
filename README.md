@@ -3,13 +3,14 @@
 
 # NEXUM
 
-**A Modern B2B SaaS Subscription and Customer Management System**
+**A Modern, Production-Ready B2B SaaS Subscription and Customer Management System**
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/OdevMatheus/nexus-monorepo/ci.yml?style=for-the-badge&label=Build&logo=github)](https://github.com/OdevMatheus/nexus-monorepo/actions)
 [![Stars](https://img.shields.io/github/stars/OdevMatheus/nexus-monorepo?style=for-the-badge&color=gold&logo=github)](https://github.com/OdevMatheus/nexus-monorepo/stargazers)
 [![Java Version](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.6-green?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev)
+[![Tailwind](https://img.shields.io/badge/Tailwind-v4-38bdf8?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](#license)
 
 ---
@@ -20,20 +21,24 @@
 
 ---
 
-## What is this?
+## 📖 What is this?
 
-**Nexum** is an enterprise-grade, high-performance monorepo application designed to manage complex SaaS subscription lifecycles, billing, and customer data. Featuring a robust, event-driven backend and a highly responsive, animated frontend, it offers comprehensive tools for modern subscription management and rich customer interaction.
+**Nexum** is an enterprise-grade, high-performance monorepo application designed to manage complex SaaS subscription lifecycles, billing, and B2B customer data. 
+
+Featuring a robust, event-driven backend and a highly responsive, animated frontend, it offers comprehensive tools for modern subscription management and rich customer interaction. It is fully optimized for production readiness, offering options for independent container setups or a single, unified, auto-executable JAR that serves both API and static frontend assets without CORS limitations.
 
 ---
 
 ## ✨ Key Features
 
-- **Subscription State Machine:** Full manual and automated lifecycle control (Trial, Active, Overdue, Suspended, Cancelled, and Reactivated states) with smart recalculated billing cycles that reset on payment.
-- **Interactive Metrics & Dashboards:** Animated charts and metrics showing Monthly Recurring Revenue (MRR), Overdue accounts, and Upcoming subscriptions with deep-dive detailed modals and direct action flows.
-- **Unified Notification System:** Integrated WhatsApp-template notification trigger flows mapping localized customer country codes (Brazil +55, USA +1, Portugal +351) for frictionless overdue reminders.
-- **Secure Cross-Tab Sessions:** JWT-based secure sessions backed by Redis and persisted via `localStorage` with Refresh Token Rotation, allowing up to 7-day persistent logins and automated dashboard routing.
-- **Event-Driven Architecture:** Decoupled audit logs, metric compilation, and notification dispatching leveraging Apache Kafka.
-- **Robust Local Seeding:** Seed scripts that pre-populate realistic gym memberships (*Carlos' FitLife Gym*), subscriptions, faturations, and transactions spanning a 2.4-year history for immediate visual testing.
+- ⚙️ **Subscription State Machine:** Full manual and automated lifecycle control (Trial, Active, Overdue, Suspended, Cancelled, and Reactivated states) with smart billing cycles that recalculate upon payment to avoid past overdue accruals.
+- 📊 **Interactive Metrics & Dashboards:** Sleek, animated charts showing Monthly Recurring Revenue (MRR), Overdue accounts, and Upcoming subscriptions with deep-dive detailed modals and direct action flows.
+- 💬 **Unified WhatsApp Notification System:** Integrated WhatsApp-template notification trigger flows mapping localized customer country codes (Brazil `+55`, USA `+1`, Portugal `+351`) for frictionless, prefilled billing and overdue reminders.
+- 👤 **Account Settings & Profile Management:** Fully decoupled account portal where authenticated users can edit personal information (Name, Email) and change password securely under strict cryptographic and session invalidation rules.
+- 🔄 **Secure Cross-Tab Sessions:** JWT-based secure sessions backed by Redis and persisted via `localStorage` with Refresh Token Rotation, allowing up to 7-day persistent logins, automated dashboard routing, and immediate session termination upon sensitive profile updates.
+- ⚡ **Event-Driven Architecture:** Decoupled audit logs, metric compilation, and notification dispatching leveraging Apache Kafka brokers.
+- 📦 **Unified Production Packaging:** Single Page Application (SPA) routing through a custom `SpaRedirectController` that forwards browser reloads (e.g., `/dashboard`, `/settings`) directly to `/index.html`, allowing both frontend and backend to run seamlessly on a single port (`8080`) under a unified JAR.
+- 🌱 **Robust Local Seeding:** Seed scripts that pre-populate realistic gym memberships (*Carlos' FitLife Gym*), subscriptions, faturations, and transactions spanning a 2.4-year history for immediate visual testing.
 
 ---
 
@@ -49,6 +54,19 @@ graph TD
     API -->|Token Cache / Rotate| Redis[(Redis Caching)]
     API -->|Audit & Notification Events| Kafka[[Apache Kafka Broker]]
     Kafka -->|Consumers| Notify[Notification & Audit Services]
+```
+
+### Production Deployment (Unified Package)
+For seamless deployment, Nexum is packaged as a single, containerized run-time image where the Spring Boot JAR hosts and routes the built React frontend locally.
+
+```mermaid
+graph LR
+    Browser[Web Browser] -->|Port 8080| Jar[Unified Spring Boot JAR]
+    subgraph Spring Boot Application
+        Jar -->|Routes /v1/**| Rest[REST Controller]
+        Jar -->|Routes other paths| Spa[SpaRedirectController]
+        Spa -->|Serves| Static[static/index.html]
+    end
 ```
 
 ### Subscription Lifecycle State Machine
@@ -73,7 +91,8 @@ graph TD
 - **Java 25** + **Spring Boot 4.0.6** (using Spring Security, Spring Data JPA, and Spring Kafka)
 - Relational mapping with **Hibernate 7** and schema migrations managed via **Flyway**
 - JWT Token management (HS512 algorithm with UUID subjects) using **JJWT 0.12.6**
-- Decoupled REST error handlers (`GlobalExceptionHandler`)
+- Session and Token Cache with **Redis**
+- Custom Validation annotations and Decoupled REST error handlers (`GlobalExceptionHandler`)
 
 ### Frontend
 - **React 19** + **TypeScript** + **Vite 8** (Build tool)
@@ -100,21 +119,26 @@ Ensure you have the following installed locally:
 
 ### Option A: Quick Start (One-Click Local Execution)
 
-The easiest way to start, test, and run the entire application locally. It provisions Docker containers in the background, cleans up any previous port or container conflicts, seeds realistic metrics history, and launches both frontend and backend development instances automatically.
+The easiest way to start, test, and run the entire application locally. It provisions Docker containers in the background, cleans up any previous port or container conflicts, seeds realistic metrics history, and launches the application automatically based on your choice.
 
 1. **Start the Application:**
    Double-click the `run.cmd` file in the root of the project, or run the following command in PowerShell:
    ```powershell
    .\run.cmd
    ```
-2. **Access the Application:**
-   - **Frontend App:** `http://localhost:5173`
-   - **Backend API:** `http://localhost:8080`
+2. **Choose Execution Mode:**
+   - **Mode [1] Development Mode:** Starts separate hot-reloading servers (Frontend on port `5173`, Backend on `8080`). Ideal for active coding.
+   - **Mode [2] Unified Mode:** Automatically compiles the React SPA, copies files into the Spring Boot static resource folder, and launches a single unified instance on port `8080`. Perfect for staging, testing, and showcasing.
+
+3. **Access the Application:**
+   - **Unified Application / Backend API:** `http://localhost:8080` (In Unified Mode, access this url)
+   - **Frontend UI (Dev Mode):** `http://localhost:5173` (In Dev Mode, access this url)
    - **API Documentation (Swagger UI):** `http://localhost:8080/swagger-ui/index.html`
 
 *Default Login Credentials:* `teste@teste` / `teste123` (Carlos' FitLife Gym admin user)
 
-*To stop the application:* Simply close the opened terminal windows and stop the docker containers.
+*To stop the application:* Simply close the opened terminal windows.
+*To reset the entire environment (containers, volumes, local builds):* Double-click `clean-all.cmd` or run `.\clean-all.cmd`.
 
 ---
 
@@ -159,7 +183,7 @@ npm run dev
 ## 🧪 Testing & Validation
 
 ### Backend Testing (Unit & Integration)
-Integration tests extend `IntegrationTestBase` and spin up ephemeral Postgres/Kafka instances utilizing **Testcontainers** to validate transaction safety.
+Integration tests extend `IntegrationTestBase` and spin up ephemeral Postgres/Kafka instances utilizing **Testcontainers** to validate transaction safety without modifying your local database.
 To run the full test suite:
 ```powershell
 cd backend
@@ -183,53 +207,48 @@ npx tsc --noEmit
 └── workflows/
     └── ci.yml
 backend/
-├── .mvn/
-│   └── wrapper/
-│       └── maven-wrapper.properties
 ├── src/
 │   ├── main/
-│   │   ├── java/
+│   │   ├── java/com/matheushenrique/nexum/
+│   │   │   ├── config/             # Security, CORS, SPA Redirection
+│   │   │   ├── controllers/        # Auth, Clients, Users/Settings, Metrics
+│   │   │   ├── dtos/               # Request and Response Java Records
+│   │   │   ├── entities/           # JPA Entities with Lombok annotations
+│   │   │   ├── messaging/          # Kafka Event Producers & Consumers
+│   │   │   ├── repositories/       # JPA Repositories
+│   │   │   └── services/           # Service Interfaces & Implementations
 │   │   └── resources/
+│   │       ├── db/migration/       # Flyway SQL migrations (V1 to V10)
+│   │       └── application.yaml    # Configured dynamically for production
 │   └── test/
-│       ├── java/
+│       ├── java/                   # Unit and Integration Tests (Testcontainers)
 │       └── resources/
-├── .gitattributes
-├── .gitignore
 ├── mvnw
 ├── mvnw.cmd
 └── pom.xml
 docker/
 └── docker-compose.yml
 docs/
-└── README.pt-BR.md
+├── specs/                          # Design and Architecture Specs
+└── README.pt-BR.md                 # Portuguese documentation
 frontend/
 ├── public/
 │   └── favicon.svg
 ├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── contexts/
-│   ├── hooks/
-│   ├── pages/
-│   ├── routes/
-│   ├── services/
-│   ├── styles/
-│   ├── types/
-│   ├── Utils/
-│   ├── App.tsx
-│   └── main.tsx
-├── .gitignore
+│   ├── components/                 # Modals, Charts, Landing & Layout UI
+│   ├── contexts/                   # AuthContext & ThemeContext
+│   ├── hooks/                      # Custom hooks wrapping React Query
+│   ├── pages/                      # Page components (Dashboard, Settings, Auth)
+│   ├── services/                   # Axios API service endpoints
+│   ├── styles/                     # Tailwind v4 globals
+│   └── Utils/                      # Text/Phone parsing & dynamic title effects
 ├── eslint.config.js
 ├── index.html
-├── package-lock.json
 ├── package.json
-├── tsconfig.app.json
-├── tsconfig.json
-├── tsconfig.node.json
 └── vite.config.ts
-├── .gitignore
-├── README.md
-└── run.cmd
+clean-all.cmd                       # Full environment cleanup script
+Dockerfile                          # Multi-stage production Dockerfile
+run.cmd                             # Unified / Dev interactive startup script
 ```
 
 ---
