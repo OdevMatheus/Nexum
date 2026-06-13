@@ -213,6 +213,9 @@ npm run lint
 npx tsc --noEmit
 ```
 
+### Universal Code Formatting
+The repository root contains an `.editorconfig` file. Modern IDEs (like VSCode, IntelliJ, WebStorm) will automatically read this file to enforce consistent indentation styles, line endings (LF vs CRLF), and charset encodings across both the Java and React codebases, ensuring a clean and standardized Git history.
+
 ---
 
 ## 📁 Project Structure
