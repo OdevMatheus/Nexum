@@ -1,0 +1,33 @@
+# Define que este é o arquivo de configuração raiz, parando a busca em pastas superiores
+root = true
+
+# Regras globais para todos os arquivos
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Regras específicas o front
+[*.{js,jsx,ts,tsx,json,yml,yaml,css,scss,html}]
+indent_size = 2
+
+# Regras específicas para o back
+[*.{java,xml,pom}]
+indent_size = 4
+
+# Shell scripts
+[*.sh]
+end_of_line = lf
+indent_size = 4
+
+# Windows Batch scripts
+[*.{cmd,bat}]
+end_of_line = crlf
+
+# Regras específicas para arquivos md e txt
+[*.{md,txt}]
+trim_trailing_whitespace = false
+insert_final_newline = false
