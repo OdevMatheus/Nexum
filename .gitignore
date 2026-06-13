@@ -1,22 +1,61 @@
-# Váriaveis de Ambiente
 .env
 .env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 !.env.example
 backend/.env
+frontend/.env
 
-# IntelliJ / WebStorm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*
+replay_pid*
+
+*.log
+coverage/
+.nyc_output/
+
 .idea/
 *.iws
 *.iml
 *.ipr
 out/
-
-# Arquivos temporários de editores (Vim/Emacs)
+.vscode/
+*.code-workspace
+.fleet/
 *~
 *.swp
 *.swo
 
-# SO
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
@@ -26,19 +65,4 @@ ehthumbs_vista.db
 *.msm
 *.msp
 $RECYCLE.BIN/
-
-
-#Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-#MD para apoiar no desenvolvimento
-Regras.md
-Principal1.md
-Principal2.md
-Branch.md
-Commits.md
-issues.md
-pr.md
+desktop.ini
