@@ -122,10 +122,12 @@ Ensure you have the following installed locally:
 The easiest way to start, test, and run the entire application locally. It provisions Docker containers in the background, cleans up any previous port or container conflicts, seeds realistic metrics history, and launches the application automatically based on your choice.
 
 1. **Start the Application:**
-   Double-click the `run.cmd` file in the root of the project, or run the following command in PowerShell:
-   ```powershell
-   .\run.cmd
+   Run the following command in your terminal (Works identically on Windows, Mac, or Linux):
+   ```bash
+   make dev
    ```
+   *(Note: If you don't have `make` installed on Windows, you can double-click `scripts/run.cmd` instead).*
+
 2. **Choose Execution Mode:**
    - **Mode [1] Development Mode:** Starts separate hot-reloading servers (Frontend on port `5173`, Backend on `8080`). Ideal for active coding.
    - **Mode [2] Unified Mode:** Automatically compiles the React SPA, copies files into the Spring Boot static resource folder, and launches a single unified instance on port `8080`. Perfect for staging, testing, and showcasing.
@@ -137,8 +139,8 @@ The easiest way to start, test, and run the entire application locally. It provi
 
 *Default Login Credentials:* `teste@teste` / `teste123` (Carlos' FitLife Gym admin user)
 
-*To stop the application:* Simply close the opened terminal windows.
-*To reset the entire environment (containers, volumes, local builds):* Double-click `clean-all.cmd` or run `.\clean-all.cmd`.
+*To stop the application:* Simply close the opened terminal windows (or `Ctrl+C`).
+*To reset the entire environment (containers, volumes, local builds):* Run `make clean` or execute `scripts/clean-all.cmd`.
 
 ---
 

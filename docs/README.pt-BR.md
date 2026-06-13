@@ -122,10 +122,12 @@ Certifique-se de possuir instalado localmente:
 A maneira mais fácil de iniciar, testar e rodar o projeto completo localmente. O script limpa conflitos de portas, remove containers antigos do Docker, inicializa toda a infraestrutura em background, semeia dados realistas de 2.4 anos e sobe o sistema automaticamente baseado na sua preferência.
 
 1. **Iniciar a Aplicação:**
-   Dê um duplo clique no arquivo `run.cmd` localizado na raiz do projeto, ou execute-o via PowerShell:
-   ```powershell
-   .\run.cmd
+   Execute o comando abaixo no terminal da raiz do projeto (Funciona identicamente em Windows, Mac ou Linux):
+   ```bash
+   make dev
    ```
+   *(Nota: Se você utiliza Windows e não possui o `make` instalado, basta dar um duplo clique no arquivo `scripts/run.cmd`).*
+
 2. **Escolha o Modo de Execução:**
    - **Modo [1] Modo Desenvolvimento:** Inicia os servidores de desenvolvimento de forma separada (Frontend na porta `5173`, Backend na porta `8080`). Ideal para escrever código com Hot-Reload.
    - **Modo [2] Modo Unificado:** Compila o frontend React automaticamente, copia para a pasta estática do Spring Boot e inicia uma única instância central na porta `8080`. Perfeito para testes, staging ou demonstração técnica simples.
@@ -137,8 +139,8 @@ A maneira mais fácil de iniciar, testar e rodar o projeto completo localmente. 
 
 *Credenciais Padrão de Login:* `teste@teste` / `teste123` (Conta administrativa do Carlos na Academia FitLife Gym)
 
-*Para parar o sistema:* Apenas feche as janelas abertas do terminal.
-*Para limpar completamente o ambiente (containers, volumes, compilações):* Dê um duplo clique no arquivo `clean-all.cmd` ou execute `.\clean-all.cmd`.
+*Para parar o sistema:* Apenas pressione `Ctrl+C` ou feche as janelas abertas do terminal.
+*Para limpar completamente o ambiente (containers, volumes, compilações):* Rode `make clean` ou execute `scripts/clean-all.cmd`.
 
 ---
 
