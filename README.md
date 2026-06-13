@@ -180,6 +180,19 @@ npm run dev
 
 ---
 
+### Option C: Docker Full-Stack Profile (Cross-Platform)
+
+Ideal for MacOS, Linux, or environments without Node.js and Java installed locally. This spins up the databases AND builds/runs the entire application inside Docker in a single step using Docker Profiles.
+
+```powershell
+cd docker
+docker compose --profile full up -d --build
+```
+*Access the Unified Application at:* `http://localhost:8080`
+*Default Login Credentials:* `teste@teste` / `teste123`
+
+---
+
 ## 🧪 Testing & Validation
 
 ### Backend Testing (Unit & Integration)

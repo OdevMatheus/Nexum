@@ -180,6 +180,19 @@ npm run dev
 
 ---
 
+### Opção C: Docker Profile Full-Stack (Multiplataforma)
+
+Ideal para usuários de MacOS, Linux ou que não possuam Node.js e Java instalados localmente na máquina. Esse comando não apenas sobe os bancos de dados, mas também compila e executa a aplicação inteira empacotada no Docker em um único passo, utilizando Docker Profiles.
+
+```powershell
+cd docker
+docker compose --profile full up -d --build
+```
+*Acesse a aplicação unificada em:* `http://localhost:8080`
+*Credenciais Padrão:* `teste@teste` / `teste123`
+
+---
+
 ## 🧪 Testes & Qualidade de Código
 
 ### Testes do Backend (Unitários & Integração)
