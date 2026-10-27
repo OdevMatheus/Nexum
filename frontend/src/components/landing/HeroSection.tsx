@@ -1,146 +1,150 @@
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { motion, type Variants } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import heroImage from '../../assets/hero.png';
 
-const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.2,
-            delayChildren: 0.1,
+export default function HeroSection() {
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.12,
+                delayChildren: 0.1,
+            },
         },
-    },
-};
+    };
 
-const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: { type: 'spring', stiffness: 50, damping: 15 }
-    },
-};
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { type: 'spring' as const, stiffness: 90, damping: 18 },
+        },
+    };
 
-export function HeroSection() {
     return (
-        <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-transparent">
-
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-                <motion.div
-                    animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-[10%] -right-[10%] w-[600px] h-[600px] rounded-full bg-rose-200/40 dark:bg-rose-900/20 blur-[100px]"
-                />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.2, 0.4, 0.2],
-                    }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute top-[20%] -left-[10%] w-[500px] h-[500px] rounded-full bg-stone-300/40 dark:bg-rose-800/10 blur-[100px]"
-                />
+        <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden px-4 sm:px-6 lg:px-8">
+            {/* Ambient Background Glows: Rose + Indigo/Blue */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
+                <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-gradient-to-tr from-rose-500/20 via-fuchsia-500/15 to-indigo-500/20 dark:from-rose-500/20 dark:via-fuchsia-500/10 dark:to-blue-500/20 rounded-full blur-[120px]" />
+                <div className="absolute top-1/3 left-1/4 w-[420px] h-[420px] bg-rose-500/10 dark:bg-rose-500/15 rounded-full blur-[110px]" />
+                <div className="absolute top-1/3 right-1/4 w-[420px] h-[420px] bg-indigo-500/10 dark:bg-blue-500/15 rounded-full blur-[110px]" />
+                {/* Subtle Architectural Grid */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:36px_36px] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="flex flex-col items-center"
-                >
-                    <motion.div variants={itemVariants} className="inline-flex items-center px-4 py-2 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm text-stone-600 dark:text-stone-300 text-sm font-medium mb-8 transition-colors">
-                        <Sparkles className="w-4 h-4 text-rose-400 mr-2" />
-                        <span className="bg-gradient-to-r from-rose-400 to-rose-500 bg-clip-text text-transparent font-semibold mr-1">
-              Novo:
-            </span>
-                        Gestão inteligente de ciclos
-                    </motion.div>
-
-                    <motion.h1 variants={itemVariants} className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-stone-800 dark:text-stone-100 tracking-tight mb-8 leading-tight transition-colors">
-                        Conecte o seu negócio <br className="hidden md:block" />
-                        com a <span className="text-rose-400 relative">
-              fidelidade
-                        <motion.svg
-                            className="absolute w-full h-3 -bottom-1 left-0 text-rose-200 dark:text-rose-500/30 -z-10"
-                            viewBox="0 0 100 10"
-                            preserveAspectRatio="none"
-                        >
-                <motion.path
-                    d="M0 5 Q 50 10 100 5"
-                    stroke="currentColor"
-                    strokeWidth="8"
-                    fill="none"
-                    strokeLinecap="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 1, delay: 1, ease: "easeOut" }}
-                />
-              </motion.svg>
-            </span>
-                    </motion.h1>
-
-                    <motion.p variants={itemVariants} className="mt-4 max-w-2xl text-lg md:text-xl text-stone-500 dark:text-stone-400 mx-auto mb-10 leading-relaxed transition-colors">
-                        A plataforma <span className="font-medium text-stone-700 dark:text-stone-200">Nexum</span> simplifica a gestão dos seus clientes, automatiza a faturação de planos e devolve-lhe o tempo necessário para escalar.
-                    </motion.p>
-
-                    <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto">
-                        <Link
-                            to="/register"
-                            className="group flex items-center justify-center px-8 py-4 text-base font-medium rounded-full text-white bg-rose-400 hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-600 transition-all shadow-[0_0_40px_-10px_rgba(251,113,133,0.5)] hover:shadow-[0_0_60px_-15px_rgba(251,113,133,0.7)] dark:shadow-[0_0_40px_-10px_rgba(244,63,94,0.3)] dark:hover:shadow-[0_0_60px_-15px_rgba(244,63,94,0.5)] hover:-translate-y-1"
-                        >
-                            Começar gratuitamente
-                            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                        <a
-                            href="#features"
-                            className="flex items-center justify-center px-8 py-4 border border-stone-200 dark:border-stone-800 text-base font-medium rounded-full text-stone-600 dark:text-stone-300 bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all hover:-translate-y-1"
-                        >
-                            Ver como funciona
-                        </a>
-                    </motion.div>
+            <motion.div
+                className="max-w-6xl mx-auto text-center"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                {/* Badge */}
+                <motion.div variants={itemVariants} className="inline-flex justify-center mb-8">
+                    <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/80 dark:bg-stone-900/90 border border-rose-500/25 dark:border-rose-500/30 shadow-sm backdrop-blur-md">
+                        <span className="flex h-2 w-2 rounded-full bg-gradient-to-r from-rose-400 to-indigo-400 animate-pulse" />
+                        <Sparkles className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
+                        <span className="text-xs font-semibold tracking-wide text-stone-700 dark:text-stone-300">
+                            Novo: Gestão inteligente de ciclos
+                        </span>
+                    </div>
                 </motion.div>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 100 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 1, type: "spring", bounce: 0.3 }}
-                    className="mt-20 mx-auto max-w-5xl perspective-1000"
+                {/* Headline */}
+                <motion.h1
+                    variants={itemVariants}
+                    className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-stone-900 dark:text-stone-50 tracking-tight leading-[1.08] max-w-4xl mx-auto mb-6"
                 >
-                    <motion.div
-                        animate={{ y: [0, -20, 0] }}
-                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                        className="rounded-3xl border border-white/50 dark:border-stone-800/50 bg-white/40 dark:bg-stone-900/40 backdrop-blur-xl p-3 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] relative transition-colors"
+                    Conecte o seu negócio com a{' '}
+                    <span className="bg-gradient-to-r from-rose-400 via-rose-500 to-indigo-500 bg-clip-text text-transparent">
+                        fidelidade
+                    </span>
+                </motion.h1>
+
+                {/* Subtitle */}
+                <motion.p
+                    variants={itemVariants}
+                    className="text-lg sm:text-xl text-stone-600 dark:text-stone-400 max-w-2xl mx-auto mb-10 leading-relaxed font-normal"
+                >
+                    A plataforma Nexum simplifica a gestão dos seus clientes, automatiza a faturação de planos e devolve-lhe o tempo necessário para escalar.
+                </motion.p>
+
+                {/* CTA Buttons */}
+                <motion.div
+                    variants={itemVariants}
+                    className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 sm:mb-20"
+                >
+                    <Link
+                        to="/register"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-rose-500 via-rose-500 to-indigo-600 hover:from-rose-400 hover:via-rose-500 hover:to-indigo-500 text-white px-8 py-4 rounded-2xl text-base font-semibold transition-all duration-300 shadow-lg shadow-rose-500/25 dark:shadow-rose-500/20 hover:shadow-xl hover:shadow-rose-500/35 hover:-translate-y-0.5 group"
                     >
-                        <img
-                            src={heroImage}
-                            alt="Dashboard da Plataforma"
-                            className="w-full h-auto rounded-2xl shadow-sm border border-stone-100/50 dark:border-stone-800/50 opacity-90 dark:opacity-80 transition-opacity"
-                        />
-
-                        <motion.div
-                            animate={{ y: [0, 15, 0] }}
-                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                            className="absolute -right-8 top-1/4 bg-white dark:bg-stone-900 p-4 rounded-2xl shadow-xl dark:shadow-2xl border border-stone-100 dark:border-stone-800 hidden lg:flex items-center gap-4 transition-colors"
-                        >
-                            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
-                                <span className="text-emerald-600 dark:text-emerald-400 text-lg">💳</span>
-                            </div>
-                            <div className="text-left">
-                                <p className="text-sm font-bold text-stone-800 dark:text-stone-100">Assinatura renovada</p>
-                                <p className="text-xs text-stone-500 dark:text-stone-400">Há 2 minutos</p>
-                            </div>
-                        </motion.div>
-                    </motion.div>
+                        Começar gratuitamente
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                    <a
+                        href="#features"
+                        className="w-full sm:w-auto inline-flex items-center justify-center bg-white/80 dark:bg-stone-900/80 hover:bg-stone-100/90 dark:hover:bg-stone-800/90 text-stone-800 dark:text-stone-200 border border-stone-200/80 dark:border-stone-800 hover:border-rose-500/30 dark:hover:border-indigo-500/40 px-8 py-4 rounded-2xl text-base font-semibold transition-all duration-300 backdrop-blur-md"
+                    >
+                        Ver como funciona
+                    </a>
                 </motion.div>
 
-            </div>
+                {/* Dashboard Showcase Stage */}
+                <motion.div
+                    variants={itemVariants}
+                    className="relative mx-auto max-w-5xl"
+                >
+                    {/* Backlight Rose + Indigo Aura */}
+                    <div className="absolute -inset-1.5 bg-gradient-to-r from-rose-500/30 via-fuchsia-500/20 to-indigo-500/30 rounded-[2rem] blur-2xl opacity-75 dark:opacity-90 -z-10" />
+
+                    {/* Browser / App Window Frame */}
+                    <div className="relative rounded-2xl sm:rounded-3xl bg-stone-950/95 p-2 sm:p-3 border border-stone-800/90 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.55)] backdrop-blur-xl overflow-hidden">
+                        {/* Top Specular Highlight Line */}
+                        <div className="absolute top-0 inset-x-12 h-px bg-gradient-to-r from-transparent via-rose-400/70 to-indigo-400/70" />
+
+                        {/* Window Top Bar */}
+                        <div className="flex items-center justify-between px-3 py-2 mb-2 border-b border-stone-800/80">
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+                                <span className="w-2.5 h-2.5 rounded-full bg-stone-700" />
+                                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500/80" />
+                            </div>
+                            <div className="px-3 py-0.5 rounded-md bg-stone-900 border border-stone-800 text-[11px] font-medium text-stone-400 tracking-wide">
+                                nexum.app
+                            </div>
+                            <div className="w-10" />
+                        </div>
+
+                        {/* Hero Image */}
+                        <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-stone-950 border border-stone-800/60">
+                            <img
+                                src={heroImage}
+                                alt="Dashboard da Plataforma"
+                                className="w-full h-auto max-h-[560px] object-cover object-top"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/50 via-transparent to-transparent pointer-events-none" />
+                        </div>
+                    </div>
+
+                    {/* Floating Notification Pill */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.65, duration: 0.5 }}
+                        className="hidden sm:flex absolute -bottom-5 -left-4 md:left-6 bg-stone-900/95 backdrop-blur-xl px-4 py-3 rounded-2xl shadow-2xl border border-stone-800 items-center gap-3.5"
+                    >
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500/20 to-indigo-500/20 border border-rose-500/30 flex items-center justify-center">
+                            <CheckCircle2 className="w-4 h-4 text-rose-400" />
+                        </div>
+                        <div className="text-left">
+                            <p className="text-xs font-bold text-stone-100">Assinatura renovada</p>
+                            <p className="text-[11px] text-stone-400">Há 2 minutos</p>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            </motion.div>
         </section>
     );
 }
