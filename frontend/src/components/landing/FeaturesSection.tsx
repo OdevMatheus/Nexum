@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Users, BarChart3, RefreshCw, TrendingUp, Layers } from 'lucide-react';
 
 import imgGestao from '../../assets/gestao_de_cliente.webp';
@@ -59,12 +58,17 @@ export default function FeaturesSection() {
     return (
         <section
             id="features"
-            className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-stone-200/60 dark:border-stone-900"
+            className="relative py-24 px-4 sm:px-6 lg:px-8 border-t border-stone-200/60 dark:border-stone-900 [content-visibility:auto] [contain-intrinsic-size:1px_900px]"
         >
-            {/* Subtle Ambient Rose/Indigo Glow */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-rose-500/15 via-indigo-500/15 to-blue-500/15 rounded-full blur-[120px]" />
-            </div>
+            {/* Zero-Blur Radial Ambient Rose/Indigo Glow */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 overflow-hidden -z-10"
+                style={{
+                    backgroundImage:
+                        'radial-gradient(ellipse 55% 40% at 50% 95%, rgba(244, 63, 94, 0.12), rgba(99, 102, 241, 0.12) 45%, transparent 75%)',
+                }}
+            />
 
             <div className="max-w-6xl mx-auto">
                 <div className="text-center max-w-2xl mx-auto mb-16">
@@ -77,17 +81,13 @@ export default function FeaturesSection() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-                    {features.map((feature, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: '-60px' }}
-                            transition={{ duration: 0.45, delay: index * 0.08 }}
-                            className={`${feature.colSpan} group relative rounded-3xl bg-stone-950 border border-stone-800/90 hover:border-rose-500/50 transition-all duration-300 overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-rose-500/10`}
+                    {features.map((feature) => (
+                        <div
+                            key={feature.title}
+                            className={`${feature.colSpan} group relative rounded-3xl bg-stone-950 border border-stone-800/90 hover:border-rose-500/50 transition-[border-color,box-shadow] duration-300 overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-rose-500/10`}
                         >
                             {/* Top Specular Edge */}
-                            <div className="absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-rose-500/50 to-indigo-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
+                            <div className="absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-rose-500/50 to-indigo-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20" />
 
                             {/* Visual Header Stage */}
                             <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-stone-950">
@@ -98,10 +98,13 @@ export default function FeaturesSection() {
                                 <img
                                     src={feature.image}
                                     alt={feature.title}
+                                    width={960}
+                                    height={524}
                                     loading="lazy"
-                                    className="w-full h-full object-cover object-center opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
+                                    decoding="async"
+                                    className="w-full h-full object-cover object-center opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-[transform,opacity] duration-500 ease-out transform-gpu"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/35 to-transparent z-10" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/35 to-transparent z-10 pointer-events-none" />
                             </div>
 
                             {/* Card Body */}
@@ -120,7 +123,7 @@ export default function FeaturesSection() {
                                     {feature.description}
                                 </p>
                             </div>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             </div>
