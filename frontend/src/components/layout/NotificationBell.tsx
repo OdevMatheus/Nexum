@@ -58,7 +58,7 @@ export function NotificationPopover({ isOpen, onClose }: NotificationPopoverProp
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    className="absolute bottom-16 left-4 w-80 max-h-[400px] flex flex-col bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden z-50 transition-colors"
+                    className="fixed bottom-20 left-4 w-80 max-w-[calc(100vw-2rem)] max-h-[400px] flex flex-col bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden z-50 transition-colors"
                 >
                     <div className="flex items-center justify-between p-4 border-b border-stone-100 dark:border-stone-800/50 bg-stone-50/50 dark:bg-stone-900/30">
                         <h3 className="font-bold text-stone-800 dark:text-stone-100">Notificações</h3>
